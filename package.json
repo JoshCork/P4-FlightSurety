@@ -11,7 +11,9 @@
     "test": "truffle test ./test/flightSurety.js",
     "dapp": "webpack-dev-server --mode development --config webpack.config.dapp.js",
     "dapp:prod": "webpack --mode production  --config webpack.config.dapp.js",
-    "server": "rm -rf ./build/server && webpack --config webpack.config.server.js"
+    "server": "rm -rf ./build/server && webpack --config webpack.config.server.js",
+    "solhint": "./node_modules/.bin/solhint -f table contracts/**/*.sol",
+    "prettier:solidity": "./node_modules/.bin/prettier --write contracts/**/*.sol"
   },
   "author": "Nik Kalyani <nik@kalyani.com> https://www.kalyani.com",
   "devDependencies": {
@@ -32,6 +34,10 @@
     "html-loader": "0.5.5",
     "html-webpack-plugin": "^3.2.0",
     "openzeppelin-solidity": "2.3.0",
+    "prettier": "1.18.2",
+    "prettier-plugin-solidity": "^1.0.0-alpha.31",
+    "solhint": "^2.2.0",
+    "solhint-plugin-prettier": "0.0.3",
     "start-server-webpack-plugin": "2.2.5",
     "style-loader": "1.0.0",
     "superstatic": "6.0.4",
