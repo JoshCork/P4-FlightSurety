@@ -16,7 +16,6 @@ contract FlightSuretyData {
     /*                                       EVENT DEFINITIONS                                  */
     /********************************************************************************************/
 
-
     /**
     * @dev Constructor
     *      The deploying account becomes contractOwner
@@ -73,7 +72,6 @@ contract FlightSuretyData {
         return operational;
     }
 
-
     /**
     * @dev Sets contract operations on/off
     *
@@ -106,7 +104,6 @@ contract FlightSuretyData {
     {
     }
 
-
    /**
     * @dev Buy insurance for a flight
     *
@@ -130,7 +127,6 @@ contract FlightSuretyData {
                                 pure
     {
     }
-
 
     /**
      *  @dev Transfers eligible payout funds to insuree
@@ -180,7 +176,6 @@ contract FlightSuretyData {
     {
         fund();
     }
-
 
 }
 

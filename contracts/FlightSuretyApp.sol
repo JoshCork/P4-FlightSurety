@@ -17,9 +17,9 @@ contract FlightSuretyApp {
     /********************************************************************************************/
 
     // Flight status codees
-    uint8 private constant STATUS_CODE_UNKNOWN = 0;
+    uint8 private constant                     STATUS_CODE_UNKNOWN = 0;
     uint8 private constant STATUS_CODE_ON_TIME = 10;
-    uint8 private constant STATUS_CODE_LATE_AIRLINE = 20;
+    uint8 private constant            STATUS_CODE_LATE_AIRLINE = 20;
     uint8 private constant STATUS_CODE_LATE_WEATHER = 30;
     uint8 private constant STATUS_CODE_LATE_TECHNICAL = 40;
     uint8 private constant STATUS_CODE_LATE_OTHER = 50;
@@ -33,7 +33,6 @@ contract FlightSuretyApp {
         address airline;
     }
     mapping(bytes32 => Flight) private flights;
-
 
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
@@ -95,7 +94,6 @@ contract FlightSuretyApp {
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
 
-
    /**
     * @dev Add an airline to the registration queue
     *
@@ -109,7 +107,6 @@ contract FlightSuretyApp {
     {
         return (success, 0);
     }
-
 
    /**
     * @dev Register a future flight for insuring.
@@ -140,7 +137,6 @@ contract FlightSuretyApp {
     {
     }
 
-
     // Generate a request for oracles to fetch flight information
     function fetchFlightStatus
                         (
@@ -162,7 +158,6 @@ contract FlightSuretyApp {
         emit OracleRequest(index, airline, flight, timestamp);
     }
 
-
 // region ORACLE MANAGEMENT
 
     // Incremented to add pseudo-randomness at various points
@@ -173,7 +168,6 @@ contract FlightSuretyApp {
 
     // Number of oracles that must respond for valid status
     uint256 private constant MIN_RESPONSES = 3;
-
 
     struct Oracle {
         bool isRegistered;
@@ -206,7 +200,6 @@ contract FlightSuretyApp {
     // they fetch data and submit a response
     event OracleRequest(uint8 index, address airline, string flight, uint256 timestamp);
 
-
     // Register an oracle with the contract
     function registerOracle
                             (
@@ -237,9 +230,6 @@ contract FlightSuretyApp {
         return oracles[msg.sender].indexes;
     }
 
-
-
-
     // Called by oracle when a response is available to an outstanding request
     // For the response to be accepted, there must be a pending request that is open
     // and matches one of the three Indexes randomly assigned to the oracle at the
@@ -255,7 +245,6 @@ contract FlightSuretyApp {
                         external
     {
         require((oracles[msg.sender].indexes[0] == index) || (oracles[msg.sender].indexes[1] == index) || (oracles[msg.sender].indexes[2] == index), "Index does not match oracle request");
-
 
         bytes32 key = keccak256(abi.encodePacked(index, airline, flight, timestamp));
         require(oracleResponses[key].isOpen, "Flight or timestamp do not match oracle request");
@@ -273,7 +262,6 @@ contract FlightSuretyApp {
             processFlightStatus(airline, flight, timestamp, statusCode);
         }
     }
-
 
     function getFlightKey
                         (
@@ -335,3 +323,4 @@ contract FlightSuretyApp {
 // endregion
 
 }
+
