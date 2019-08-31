@@ -16,10 +16,10 @@ contract FlightSuretyApp {
     /*                                       DATA VARIABLES                                     */
     /********************************************************************************************/
 
-    // Flight status codees
-    uint8 private constant                     STATUS_CODE_UNKNOWN = 0;
+    // Flight status codees, used later as mock
+    uint8 private constant STATUS_CODE_UNKNOWN = 0;
     uint8 private constant STATUS_CODE_ON_TIME = 10;
-    uint8 private constant            STATUS_CODE_LATE_AIRLINE = 20;
+    uint8 private constant STATUS_CODE_LATE_AIRLINE = 20;
     uint8 private constant STATUS_CODE_LATE_WEATHER = 30;
     uint8 private constant STATUS_CODE_LATE_TECHNICAL = 40;
     uint8 private constant STATUS_CODE_LATE_OTHER = 50;
@@ -68,7 +68,8 @@ contract FlightSuretyApp {
 
     /**
     * @dev Contract constructor
-    *
+    * TODO: Need to modify this so that the first airline is registered on the contact being
+    * initialized.
     */
     constructor
                                 (
@@ -96,13 +97,13 @@ contract FlightSuretyApp {
 
    /**
     * @dev Add an airline to the registration queue
-    *
+    * first four airlines can register themselves, subsequent airlines need to be voted in.
     */
     function registerAirline
                             (
                             )
                             external
-                            pure
+                            // pure allows it to compile
                             returns(bool success, uint256 votes)
     {
         return (success, 0);
@@ -158,7 +159,9 @@ contract FlightSuretyApp {
         emit OracleRequest(index, airline, flight, timestamp);
     }
 
-// region ORACLE MANAGEMENT
+    /********************************************************************************************/
+    /*                                    region ORACLE MANAGEMENT                              */
+    /********************************************************************************************/
 
     // Incremented to add pseudo-randomness at various points
     uint8 private nonce = 0;
@@ -320,7 +323,9 @@ contract FlightSuretyApp {
         return random;
     }
 
-// endregion
+    /********************************************************************************************/
+    /*                                END region ORACLE MANAGEMENT                              */
+    /********************************************************************************************/
 
 }
 
