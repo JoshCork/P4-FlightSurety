@@ -2,3 +2,6 @@
   "printWidth": 100,
   "singleQuote": true
 }
+
+node_modules/
+additional-tests.sol
