@@ -10,6 +10,8 @@ import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 /* FlightSurety Smart Contract                      */
 /************************************************** */
 contract FlightSuretyApp {
+    address dataContract;   // Address of data contract
+    FsData fsData;          // Instance of data contract  used to call into it.
     using SafeMath for uint256; // Allow SafeMath functions to be called for all uint256 types (similar to "prototype" in Javascript)
 
     /********************************************************************************************/
@@ -71,11 +73,9 @@ contract FlightSuretyApp {
     * TODO: Need to modify this so that the first airline is registered on the contact being
     * initialized.
     */
-    constructor
-                                (
-                                )
-                                public
+    constructor (address dataContract) public
     {
+        fsData = FsData(dataContract);
         contractOwner = msg.sender;
     }
 
@@ -106,7 +106,17 @@ contract FlightSuretyApp {
                             // pure allows it to compile
                             returns(bool success, uint256 votes)
     {
+        // registeredCount: Check to see how many airlines are already registered
+        // registeredCount < 4, automatically register airline
+        fsData.registerAirline();
         return (success, 0);
+        // registeredCOunt > 4, tally votes before calling registration
+        // votes less than 50% of registeredCount:
+        // DO NOTHING
+        // votes more than 50% of registeredCount:
+        // register this airline
+        // fsData.registerAirline();
+        // return (success, 0); /* respond with information on success */
     }
 
    /**
@@ -326,6 +336,13 @@ contract FlightSuretyApp {
     /********************************************************************************************/
     /*                                END region ORACLE MANAGEMENT                              */
     /********************************************************************************************/
+
+}
+
+contract FsData {
+    // Placeholder for Interface to Data Contract
+
+    function registerAirline() external{} // interface into register airline
 
 }
 
