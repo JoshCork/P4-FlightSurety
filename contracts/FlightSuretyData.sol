@@ -12,6 +12,14 @@ contract FlightSuretyData {
     address private contractOwner;   // Account used to deploy contract
     bool private operational = true; // Blocks all state changes throughout the contract if false
 
+    struct Airline {
+        string      name;
+        address     aAccount;       // wallet address, used to uniquely identify the airline account
+        bool        isRegistered;    // allows to de-register an airline
+    }
+
+     mapping(address => Airline) airlines; // Mapping for storing airlines that are registered
+
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
     /********************************************************************************************/
@@ -96,12 +104,19 @@ contract FlightSuretyData {
     *      Can only be called from FlightSuretyApp contract
     *
     */
-    function registerAirline
-                            (
-                            )
-                            external
-    {
-    }
+    function registerAirline(address account, string calldata airlineName)
+        external
+        requireIsOperational
+        requireContractOwner
+        {
+            require(!airlines[account].isRegistered, "User is already registered.");
+            airlines[account] = Airline({
+                name: airlineName,
+                aAccount: account, // this is redundant but a placeholder for more fields.
+                isRegistered: true
+        });
+        }
+
 
    /**
     * @dev Buy insurance for a flight
