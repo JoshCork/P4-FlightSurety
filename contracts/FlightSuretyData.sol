@@ -30,10 +30,16 @@ contract FlightSuretyData {
     */
     constructor
                                 (
+                                    address firstAirline
                                 )
                                 public
     {
         contractOwner = msg.sender;
+        airlines[firstAirline] = Airline({
+                name: "Founding Airline",
+                aAccount: firstAirline,
+                isRegistered: true
+        });
     }
 
     /********************************************************************************************/
@@ -95,6 +101,19 @@ contract FlightSuretyData {
         operational = mode;
     }
 
+    /**
+    * @dev Check if an airline is registered
+    *
+    * @return A bool that indicates if the airline is registered
+    */
+    function isAirlineRegistered(address account)
+        external
+        view
+        returns (bool)
+    {
+        return airlines[account].isRegistered;
+    }
+
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
@@ -107,9 +126,9 @@ contract FlightSuretyData {
     function registerAirline(address account, string calldata airlineName)
         external
         requireIsOperational
-        requireContractOwner
         {
-            require(!airlines[account].isRegistered, "User is already registered.");
+            // require(!airlines[account].isRegistered, "Airline is already registered.");
+            // require(airlines[tx.origin].isRegistered, "Airline must be registered by another airline.");
             airlines[account] = Airline({
                 name: airlineName,
                 aAccount: account, // this is redundant but a placeholder for more fields.
@@ -178,6 +197,13 @@ contract FlightSuretyData {
                         returns(bytes32)
     {
         return keccak256(abi.encodePacked(airline, flight, timestamp));
+    }
+
+    // Return Registered Airlines
+    function fetchAirlines()
+    external
+    {
+
     }
 
     /**

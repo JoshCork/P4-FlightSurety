@@ -99,16 +99,16 @@ contract FlightSuretyApp {
     * @dev Add an airline to the registration queue
     * first four airlines can register themselves, subsequent airlines need to be voted in.
     */
-    function registerAirline
-                            (
-                            )
+    function registerAirline(address account, string calldata airlineName)
                             external
-                            // pure allows it to compile
                             returns(bool success, uint256 votes)
     {
+        require(!fsData.isAirlineRegistered(account), "Airline is already registered.");
+
         // registeredCount: Check to see how many airlines are already registered
         // registeredCount < 4, automatically register airline
-        fsData.registerAirline();
+        require(fsData.isAirlineRegistered(msg.sender), "Airline must be registered by another airline.");
+        fsData.registerAirline(account, airlineName);
         return (success, 0);
         // registeredCOunt > 4, tally votes before calling registration
         // votes less than 50% of registeredCount:
@@ -147,6 +147,8 @@ contract FlightSuretyApp {
                                 pure
     {
     }
+
+
 
     // Generate a request for oracles to fetch flight information
     function fetchFlightStatus
@@ -341,8 +343,14 @@ contract FlightSuretyApp {
 
 contract FsData {
     // Placeholder for Interface to Data Contract
-
-    function registerAirline() external{} // interface into register airline
+    struct Airline {
+        string      name;
+        address     aAccount;       // wallet address, used to uniquely identify the airline account
+        bool        isRegistered;    // allows to de-register an airline
+    }
+    mapping(address => Airline) airlines;
+    function registerAirline(address account, string calldata airlineName) external{} // interface into register airline
+    function isAirlineRegistered(address account) external returns (bool) {} // interface into data contract
 
 }
 
