@@ -36,7 +36,7 @@ contract FlightSuretyApp {
     }
     mapping(bytes32 => Flight) private flights;
 
-    uint buyIn = 10000000000000000000; // 10 ether to buy into the registration
+    uint buyIn = 10 ether; // 10 ether to buy into the registration
 
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
