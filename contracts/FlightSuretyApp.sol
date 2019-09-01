@@ -36,6 +36,8 @@ contract FlightSuretyApp {
     }
     mapping(bytes32 => Flight) private flights;
 
+    uint buyIn = 10000000000000000000; // 10 ether to buy into the registration
+
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
     /********************************************************************************************/
@@ -61,6 +63,16 @@ contract FlightSuretyApp {
     modifier requireContractOwner()
     {
         require(msg.sender == contractOwner, "Caller is not contract owner");
+        _;
+    }
+
+      // Define a modifier that checks if they have sent enough to buy in. Returns change if they have
+      // sent more than is required.
+    modifier paidEnough() {
+        uint _buyIn = buyIn;
+        require(msg.value >= _buyIn,"Have not satisfied the buy-in amount.");
+        uint amountToReturn = msg.value - _buyIn;
+        msg.sender.transfer(amountToReturn);
         _;
     }
 
@@ -100,13 +112,15 @@ contract FlightSuretyApp {
     * first four airlines can register themselves, subsequent airlines need to be voted in.
     */
     function registerAirline(address account, string calldata airlineName)
-                            external
+                            external payable
+                            paidEnough()
                             returns(bool success, uint256 votes)
     {
         require(!fsData.isAirlineRegistered(account), "Airline is already registered.");
 
         // registeredCount: Check to see how many airlines are already registered
         // registeredCount < 4, automatically register airline
+        // TODO: Each Airline needs to fund the contract with 10 Ether
         require(fsData.isAirlineRegistered(msg.sender), "Airline must be registered by another airline.");
         fsData.registerAirline(account, airlineName);
         return (success, 0);
