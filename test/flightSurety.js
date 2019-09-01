@@ -76,11 +76,31 @@ contract('Flight Surety Tests', async (accounts) => {
     // ARRANGE
     let newAirline = accounts[2];
     let airlineName = "Udacity Air";
-    console.log(config.firstAirline)
 
     // ACT
     try {
         await config.flightSuretyApp.registerAirline(newAirline, airlineName, {from: config.firstAirline});
+    }
+    catch(e) {
+        // console.log(e)
+    }
+    let result = await config.flightSuretyData.isAirlineRegistered.call(newAirline);
+
+    // ASSERT
+    assert.equal(result, false, "Airline should not be able to register another airline if it hasn't provided funding");
+
+  });
+
+  it('(airline) can register an Airline using registerAirline() when funded', async () => {
+
+    // ARRANGE
+    let newAirline = accounts[3];
+    let airlineName = "Udacity Air";
+    let msgValue = web3.utils.toWei('10', 'ether')
+
+    // ACT
+    try {
+        await config.flightSuretyApp.registerAirline(newAirline, airlineName, {from: config.firstAirline, value: msgValue});
     }
     catch(e) {
         console.log(e)
@@ -88,7 +108,7 @@ contract('Flight Surety Tests', async (accounts) => {
     let result = await config.flightSuretyData.isAirlineRegistered.call(newAirline);
 
     // ASSERT
-    assert.equal(result, false, "Airline should not be able to register another airline if it hasn't provided funding");
+    assert.equal(result, true, "Airline should be able to register another airline if it has provided funding (10 Ether)");
 
   });
 
