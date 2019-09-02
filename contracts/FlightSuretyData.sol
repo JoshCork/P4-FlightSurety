@@ -151,8 +151,15 @@ contract FlightSuretyData {
     {
         if (airlines[nominee].voters.length == 0) {
             return false;
-        } else {
-            return true;
+        } else { // there are already some votes, check to see if this nominatingAirline is already one of them
+            for(uint i=0; i<airlines[nominee].voters.length; i++) {
+                if(airlines[nominee].voters[i] == nominatingAirline){
+                    return true; // found a vote from this nominating airline
+                }
+                return false; // this is a new vote
+            }
+
+
         }
 
     }
