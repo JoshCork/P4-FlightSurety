@@ -12,13 +12,21 @@ contract FlightSuretyData {
     address private contractOwner;   // Account used to deploy contract
     bool private operational = true; // Blocks all state changes throughout the contract if false
 
+
     struct Airline {
-        string      name;
-        address     aAccount;       // wallet address, used to uniquely identify the airline account
-        bool        isRegistered;    // allows to de-register an airline
+        string                      name;
+        address                     aAccount;      // wallet address, used to uniquely identify the airline account
+        bool                        isFounder;     // is this a founding airline?
+        bool                        isRegistered;  // allows to de-register an airline
+        bool                        isApproved;    // has this airline been voted in?
+        uint                        voteCount;     // count of votes used to nominate this airline to be registered
+        address[]                   voters;        // members that voted this airline in. used to prevent duplicate votes
     }
 
      mapping(address => Airline) airlines; // Mapping for storing airlines that are registered
+
+     uint private membershipCount = 1; // keep track of the total number of registered airlines
+
 
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
@@ -38,7 +46,11 @@ contract FlightSuretyData {
         airlines[firstAirline] = Airline({
                 name: "Founding Airline",
                 aAccount: firstAirline,
-                isRegistered: true
+                isFounder: true,
+                isRegistered: true,
+                isApproved: true,
+                voteCount: 1,
+                voters: new address[](0)
         });
     }
 
@@ -86,6 +98,14 @@ contract FlightSuretyData {
         return operational;
     }
 
+    function getMemberCount() external returns(uint) {
+        return membershipCount;
+    }
+
+    function getVoteCount(address account) external returns(uint){
+        return airlines[account].voteCount;
+    }
+
     /**
     * @dev Sets contract operations on/off
     *
@@ -103,7 +123,6 @@ contract FlightSuretyData {
 
     /**
     * @dev Check if an airline is registered
-    *
     * @return A bool that indicates if the airline is registered
     */
     function isAirlineRegistered(address account)
@@ -112,6 +131,30 @@ contract FlightSuretyData {
         returns (bool)
     {
         return airlines[account].isRegistered;
+    }
+
+     /**
+    * @dev Check if an airline is registered
+    * @return A bool that indicates if the airline is registered
+    */
+    function isAirlineApproved(address account)
+        external
+        view
+        returns (bool)
+    {
+        return airlines[account].isApproved;
+    }
+
+    function hasVoted(address nominatingAirline, address nominee)
+        external
+        returns (bool)
+    {
+        if (airlines[nominee].voters.length == 0) {
+            return false;
+        } else {
+            return true;
+        }
+
     }
 
     /********************************************************************************************/
@@ -123,19 +166,57 @@ contract FlightSuretyData {
     *      Can only be called from FlightSuretyApp contract
     *
     */
-    function registerAirline(address account, string calldata airlineName)
+    function registerAirline(address account, string calldata airlineName, bool approvalStatus, address msgSender)
         external
         requireIsOperational
         {
             // require(!airlines[account].isRegistered, "Airline is already registered.");
             // require(airlines[tx.origin].isRegistered, "Airline must be registered by another airline.");
-            airlines[account] = Airline({
+           if (approvalStatus) { // airline is approved, this is a founder
+                airlines[account] = Airline({
                 name: airlineName,
                 aAccount: account, // this is redundant but a placeholder for more fields.
-                isRegistered: true
-        });
+                isRegistered: true,
+                isApproved: approvalStatus,
+                isFounder: true,
+                voteCount: 1,
+                voters: new address[](0)
+                });
+                membershipCount = membershipCount + 1;
+            } else { // airline is not approved, this is a new nominee
+                airlines[account] = Airline({
+                name: airlineName,
+                aAccount: account, // this is redundant but a placeholder for more fields.
+                isRegistered: true,
+                isApproved: approvalStatus,
+                isFounder: false,
+                voteCount: 1,
+                voters: new address[](0)
+                });
+                airlines[account].voters.push(msgSender);
+            }
         }
 
+    /**
+    * @dev Add an airline to the registration queue
+    *      Can only be called from FlightSuretyApp contract
+    *
+    */
+    function approveAirline(address account)
+        external
+        requireIsOperational
+        {
+            airlines[account].isApproved = true;
+            membershipCount = membershipCount + 1;
+        }
+
+    function nominateAirline(address nominatingAirline, address nominee)
+        external
+        requireIsOperational
+    {
+        airlines[nominee].voters.push(nominatingAirline);
+        airlines[nominee].voteCount = airlines[nominee].voteCount + 1;
+    }
 
    /**
     * @dev Buy insurance for a flight

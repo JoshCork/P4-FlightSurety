@@ -35,8 +35,9 @@ contract FlightSuretyApp {
         address airline;
     }
     mapping(bytes32 => Flight) private flights;
-
+    address[] multiCalls = new address[](0);
     uint buyIn = 10 ether; // 10 ether to buy into the registration
+    uint public currentVotesNeeded;
 
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
@@ -52,7 +53,7 @@ contract FlightSuretyApp {
     */
     modifier requireIsOperational()
     {
-         // Modify to call data contract's status
+         // TODO: Modify to call data contract's status
         require(true, "Contract is currently not operational");
         _;  // All modifiers require an "_" which indicates where the function body will be added
     }
@@ -100,12 +101,45 @@ contract FlightSuretyApp {
                             pure
                             returns(bool)
     {
-        return true;  // Modify to call data contract's status
+        return true;  // TODO: Modify to call data contract's status
+    }
+
+    function calcVotesNeeded(uint memberCount) public returns(uint) {
+        uint denom = 2; // 50%
+        uint num = memberCount;
+        uint votesNeeded;
+        if (num.mod(denom) > 0) {
+            votesNeeded = num.div(denom) + 1;
+        } else {
+            votesNeeded = num.div(denom);
+        }
+
+        return votesNeeded;
     }
 
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
+
+
+   function nominateAirline(address account, string calldata airlineName)
+    external //TODO: constrain to only airlines being able to nominate an airline.
+
+   {
+       bool isRegistered = fsData.isAirlineRegistered(account);
+       require(!fsData.isAirlineApproved(account), "Airline is already registered and approved.");
+
+       address nominatingAirline = msg.sender;
+
+        if(isRegistered){
+            require(!fsData.hasVoted(nominatingAirline,account), "This is a duplicate vote.");
+            fsData.nominateAirline(nominatingAirline, account);
+        } else {
+            fsData.registerAirline(account, airlineName, false, msg.sender); // register a new airline but do not approve
+        }
+
+   }
+
 
    /**
     * @dev Add an airline to the registration queue
@@ -114,24 +148,26 @@ contract FlightSuretyApp {
     function registerAirline(address account, string calldata airlineName)
                             external payable
                             paidEnough()
-                            returns(bool success, uint256 votes)
+                            returns(bool success)
     {
-        require(!fsData.isAirlineRegistered(account), "Airline is already registered.");
 
         // registeredCount: Check to see how many airlines are already registered
         // registeredCount < 4, automatically register airline
-        // TODO: Each Airline needs to fund the contract with 10 Ether
-        require(fsData.isAirlineRegistered(msg.sender), "Airline must be registered by another airline.");
-        fsData.registerAirline(account, airlineName);
-        return (success, 0);
-        // registeredCOunt > 4, tally votes before calling registration
-        // votes less than 50% of registeredCount:
-        // DO NOTHING
-        // votes more than 50% of registeredCount:
-        // register this airline
-        // fsData.registerAirline();
-        // return (success, 0); /* respond with information on success */
+        if (fsData.getMemberCount() <= 4) {
+            require(!fsData.isAirlineRegistered(account), "Airline is already registered.");
+            require(fsData.isAirlineRegistered(msg.sender), "Airline must be registered by another airline.");
+            fsData.registerAirline(account, airlineName, true, msg.sender);
+            return (true);
+        } else {
+            uint currentMembers = fsData.getMemberCount();
+            uint votesNeeded = calcVotesNeeded(currentMembers);
+            currentVotesNeeded = votesNeeded;
+            uint currentVoteCount = fsData.getVoteCount(account);
+            require(currentVoteCount >= votesNeeded, "You don't have enough votes yet"); // check for voteCount > 50% of member count
+            fsData.approveAirline(account); // assuming it is, call approve airline
+        }
     }
+
 
    /**
     * @dev Register a future flight for insuring.
@@ -363,8 +399,14 @@ contract FsData {
         bool        isRegistered;    // allows to de-register an airline
     }
     mapping(address => Airline) airlines;
-    function registerAirline(address account, string calldata airlineName) external{} // interface into register airline
+    function registerAirline(address account, string calldata airlineName, bool approvalStatus, address msgSender) external {} // interface
     function isAirlineRegistered(address account) external returns (bool) {} // interface into data contract
+    function getMemberCount() external returns(uint) { } // interface into data contract
+    function isAirlineApproved(address account) external returns(bool) {} // interface into data contract
+    function hasVoted(address nominatingAirline, address nominee) external returns (bool) {} // interface into data contract
+    function nominateAirline(address nominatingAirline, address nominee) external {} // interface
+    function approveAirline(address account) external {} // interface
+    function getVoteCount(address account) external returns(uint) {} //interface
 
 }
 
