@@ -112,27 +112,96 @@ contract('Flight Surety Tests', async (accounts) => {
 
   });
 
-  it('When calculating votes needed if 50% does not divide evenly round up by 1', async () => {
+  it('Should not be registered if not founding four, and not yet nominated', async () => {
 
     // ARRANGE
+    let airOne = accounts[4];
+    let airTwo = accounts[5];
+    let airThree = accounts[6];
+    let airFour = accounts[7];
+    let rogueAir = accounts[8];
 
-    let numerator = 9
-    var result
+    let airlineName = "test airline"
+    let msgValue = web3.utils.toWei('10', 'ether')
 
     // ACT
     try {
-        await config.flightSuretyApp.calcVotesNeeded(9);
+        await config.flightSuretyApp.registerAirline(airOne, airlineName, {from: config.firstAirline, value: msgValue}); //founder2
+        await config.flightSuretyApp.registerAirline(airTwo, airlineName, {from: config.firstAirline, value: msgValue}); //founder3
+        await config.flightSuretyApp.registerAirline(airThree, airlineName, {from: config.firstAirline, value: msgValue}); //founder4
+        await config.flightSuretyApp.registerAirline(rogueAir, airlineName, {from: rogueAir, value: msgValue}); // Non-Founder, needs votes
+    }
+    catch(e) {
+        // console.log(e)
+    }
+    let result = await config.flightSuretyData.isAirlineRegistered.call(rogueAir);
+    // console.log(`isAirlineApproved: ${result}`)
+
+    // ASSERT
+    assert.equal(result, false, "Airline should not be registered member count > 4 and not yet nominated");
+
+  });
+
+  it('Should be registered but not approved when nominated for the first time.', async () => {
+
+    // ARRANGE
+    let rogueAir = accounts[8];
+
+    let airlineName = "test airline"
+
+    // ACT
+    try {
+        await config.flightSuretyApp.nominateAirline(rogueAir, airlineName, {from: config.firstAirline});
+    }
+    catch(e) {
+        // console.log(e)
+    }
+    let result1 = await config.flightSuretyData.isAirlineRegistered.call(rogueAir);
+    let result2 = await config.flightSuretyData.isAirlineApproved.call(rogueAir);
+
+    let result = result1 && !result2
+
+    // ASSERT
+    assert.equal(result, true, "Airline should have been registered but not approved");
+
+  });
+
+  it('Should be approved after enough votes have been cast.', async () => {
+
+    // ARRANGE
+    let approvalAir = accounts[9];
+    let airlineName = "ApprovalAir"
+    let existingAirStartCount = 4
+    let memberCount = await config.flightSuretyData.getMemberCount.call();
+    let votesNeeded = Math.ceil(memberCount/2)
+    let msgValue = web3.utils.toWei('10', 'ether')
+
+    // ACT
+    for (i = 1; i <= votesNeeded; i++ ) { // Vote airline in
+        await config.flightSuretyApp.nominateAirline(approvalAir, airlineName, {from: accounts[existingAirStartCount]});
+        existingAirStartCount++
+    }
+    try { // register once there are enough votes
+        await config.flightSuretyApp.registerAirline(approvalAir, airlineName, {from: approvalAir, value: msgValue});
     }
     catch(e) {
         console.log(e)
     }
 
-    result = config.flightSuretyApp.currentVotesNeeded();
+
+    let result1 = await config.flightSuretyData.isAirlineRegistered.call(approvalAir);
+    let result2 = await config.flightSuretyData.isAirlineApproved.call(approvalAir);
+    let result = result1 && result2
+
+    console.log(`isRegistered?: ${result1}`)
+    console.log(`isApproved??: ${result2}`)
+
 
     // ASSERT
-    assert.equal(result, 5, "is this math really safe?");
+    assert.equal(result, true, "Airline should have been registered and approved");
 
   });
+
 
 
 });
