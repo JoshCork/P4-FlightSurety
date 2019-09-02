@@ -121,7 +121,7 @@ contract FlightSuretyApp {
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
 
-
+   //TODO: only exisiting airlines should be able to nominate a new airline
    function nominateAirline(address account, string calldata airlineName)
     external //TODO: constrain to only airlines being able to nominate an airline.
 
@@ -163,7 +163,7 @@ contract FlightSuretyApp {
             uint votesNeeded = calcVotesNeeded(currentMembers);
             currentVotesNeeded = votesNeeded;
             uint currentVoteCount = fsData.getVoteCount(account);
-            require(currentVoteCount >= votesNeeded, "You don't have enough votes yet"); // check for voteCount > 50% of member count
+            require(currentVoteCount >= votesNeeded, "You do not have enough votes yet"); // check for voteCount > 50% of member count
             fsData.approveAirline(account); // assuming it is, call approve airline
         }
     }
