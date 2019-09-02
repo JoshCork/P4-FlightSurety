@@ -112,5 +112,27 @@ contract('Flight Surety Tests', async (accounts) => {
 
   });
 
+  it('When calculating votes needed if 50% does not divide evenly round up by 1', async () => {
+
+    // ARRANGE
+
+    let numerator = 9
+    var result
+
+    // ACT
+    try {
+        await config.flightSuretyApp.calcVotesNeeded(9);
+    }
+    catch(e) {
+        console.log(e)
+    }
+
+    result = config.flightSuretyApp.currentVotesNeeded();
+
+    // ASSERT
+    assert.equal(result, 5, "is this math really safe?");
+
+  });
+
 
 });
