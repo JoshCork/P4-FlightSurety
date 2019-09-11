@@ -57,6 +57,12 @@ contract FlightSuretyApp {
         _;  // All modifiers require an "_" which indicates where the function body will be added
     }
 
+    modifier requireMaxEther()
+    {
+        require(msg.value <= 1 ether, "Cannot insure for more than 1 ether of value.");
+        _;
+    }
+
     /**
     * @dev Modifier that requires the "ContractOwner" account to be the function caller
     */
@@ -141,6 +147,7 @@ contract FlightSuretyApp {
 
    // application counterpart to data contract where data on policies is stored.
    function insureFlight (address account, string calldata flightNumber, uint flightTimestamp)
+   requireMaxEther()
    external
    payable
    {
@@ -150,6 +157,20 @@ contract FlightSuretyApp {
        require(hasPolicy == false, "Flight has already been insured for this account.");
        fsData.buy(account, flightNumber, msg.value, fKey);
 
+   }
+
+   function creditPassenger (address account, bytes32 flightKey) external {
+       require(fsData.hasFlightPolicy(account, flightKey),"This flight is not insured for this account");
+       // TODO: Check with the oracles to see if flight can be credited
+
+       // Determine the amount of insurance that was placed on this flight by this passenger
+       ( , ,uint iAmount, , ) = fsData.getPolicy(account, flightKey);
+
+       // Use safemath to determin the payout based on the constant payout amount
+       uint payout = iAmount.div(4).mul(6); //TODO: make this so it isn't hard coded into the contract and instead use a constant
+
+       // Call creditInsuree() passing along the account, flightkey, and the payout amount calculated here.
+       fsData.creditInsuree(account, payout, flightKey);
    }
 
 
@@ -409,5 +430,9 @@ contract FsData {
     function getFlightKey(address airline, string calldata flight, uint256 timestamp) pure external returns(bytes32) {} // interface
     function hasFlightPolicy(address account, bytes32 flightKey) external returns(bool) {} // interface
     function buy (address account, string calldata flightNumber, uint premiumPaid, bytes32 flightKey) external {} //interface
+    function creditInsuree(address account, uint payout, bytes32 flightKey) external {} //interface
+    function getPolicy(address account, bytes32 flightKey) external returns(address, string memory, uint, bool,bytes32) {} // interface
+    function getCreditAmount(address account) external returns (uint) {} // interface
+
 }
 

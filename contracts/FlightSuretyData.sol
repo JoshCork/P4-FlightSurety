@@ -33,9 +33,10 @@ contract FlightSuretyData {
 
     }
 
-    mapping(address => Policy[]) policies;  // Mapping of address (policy holders) to an array of polcies
-    mapping(address => Airline) airlines;   // Mapping for storing airlines that are registered
-    uint private membershipCount = 1;       // keep track of the total number of registered airlines
+    mapping(address => Policy[])    policies;   // Mapping of address (policy holders) to an array of polcies
+    mapping(address => Airline)     airlines;   // Mapping for storing airlines that are registered
+    mapping(address => uint)        credits;    // Mapping to store the amount of credit each account has pending withrawl
+    uint private membershipCount = 1;           // Variable for keeping track of the total number of registered airlines
 
 
     /********************************************************************************************/
@@ -91,6 +92,12 @@ contract FlightSuretyData {
         _;
     }
 
+    modifier hasCredit(address account)
+    {
+        require(credits[account] > 0, "account does not have any credit");
+        _;
+    }
+
     /********************************************************************************************/
     /*                                       UTILITY FUNCTIONS                                  */
     /********************************************************************************************/
@@ -125,6 +132,13 @@ contract FlightSuretyData {
 
     function getVoteCount(address account) external returns(uint){
         return airlines[account].voteCount;
+    }
+
+    function getCreditAmount(address account)
+    hasCredit(account)
+    external returns (uint)
+    {
+        return credits[account];
     }
 
     /**
@@ -198,13 +212,13 @@ contract FlightSuretyData {
         return policies[account].length;
     }
 
-    function hasFlightPolicy(address account, bytes32 flightKey) external returns(bool) {
+    function hasFlightPolicy(address account, bytes32 flightKey) public returns(bool) {
         for (uint i = 0; i < policies[account].length; i++) {
             if (policies[account][i].flightKey == flightKey) {
-                return true; // policy exists for this flight number
+                return true; // policy exists for this flight
             }
         }
-        return false; // flight number not found in list of policies
+        return false; // flight not found in list of policies
     }
 
     function getPolicy(address account, bytes32 flightKey) external returns(address, string memory, uint, bool,bytes32) {
@@ -216,6 +230,18 @@ contract FlightSuretyData {
                     policies[account][i].premiumPaid,
                     policies[account][i].isRedeemed,
                     policies[account][i].flightKey
+                    );
+            }
+        }
+        // policy not found.  What do I return here?
+    }
+
+    function getPolicyIndex(address account, bytes32 flightKey) internal returns(uint) {
+        require(hasFlightPolicy(account, flightKey),"This flight is not insured for this account");
+        for (uint i = 0; i < policies[account].length; i++) {
+            if (policies[account][i].flightKey == flightKey) {
+                return (
+                    i
                     );
             }
         }
@@ -320,12 +346,15 @@ contract FlightSuretyData {
     /**
      *  @dev Credits payouts to insurees
     */
-    function creditInsurees
-                                (
-                                )
-                                external
-                                pure
+    function creditInsuree(address account, uint payout, bytes32 flightKey)
+    external
     {
+        require(hasFlightPolicy(account, flightKey),"This flight is not insured for this account");
+        uint policyNumber = getPolicyIndex(account, flightKey);
+        // add credit to credits for this account
+        credits[account] = credits[account] + payout;
+        // mark policy as paid
+        policies[account][policyNumber].isRedeemed = true;
     }
 
     /**
