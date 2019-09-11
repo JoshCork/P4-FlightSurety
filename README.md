@@ -1,30 +1,5 @@
 # FlightSurety
 
-
-## Registration
-
-If airline is one of first four
-    --> Check for funding and register
-    --> Set isApproved to true
-    --> Set isFounder to true
-If airline is 5th or after
-    --> Check for vote counts
-    --> If vote counts > 50% toggle registration
-    --> Else reject registration: "not enough votes"
-
-New Function: nominateAirline
-    --> Check isRegistered && notApproved
-    --> Check caller isAirline
-    --> Check isRegistered && isApproved
-        --> reject "airline registered and approved"
-    --> if airline is NOT registered && notApproved
-        --> Register & set isApproved to false set voteCount to 1
-        --> Emit voteCount
-    --> if airline is registered && notApproved
-        --> increment vote count
-        --> Emit voteCount
-
-
 FlightSurety is a sample application project for Udacity's Blockchain course.
 
 ## Install
