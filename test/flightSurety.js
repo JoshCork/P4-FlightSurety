@@ -12,10 +12,6 @@ contract('Flight Surety Tests', async (accounts) => {
     // await config.flightSuretyData.authorizeCaller(config.flightSuretyApp.address); // unclear what the purpose of this is? Not covered in the ruberic or the lessons?
   });
 
-  /****************************************************************************************/
-  /* Operations and Settings                                                              */
-  /****************************************************************************************/
-
   it(`(multiparty) has correct initial isOperational() value`, async function () {
 
     // Get operating status
@@ -232,6 +228,69 @@ contract('Flight Surety Tests', async (accounts) => {
 
 
   });
+
+  it('Consumer should not be able to insure flight for more than 1 ether', async () => {
+
+    // ARRANGE
+    let consumer = accounts[12];
+    let flightNumber = "SWA 2716"
+    let premiumAmount = web3.utils.toWei('10', 'ether')
+    let flightTime = moment(new Date("Wed, 11 September 2019 11:45:00 GMT")).unix()
+    let flightKey = await config.flightSuretyData.getFlightKey.call(consumer,flightNumber,flightTime);
+
+
+    // ACT
+
+    try { // register once there are enough votes
+        await config.flightSuretyApp.insureFlight(consumer, flightNumber, flightTime, {from: consumer, value: premiumAmount});
+    }
+    catch(e) {
+        // console.log(e)
+    }
+
+    let isInsured = await config.flightSuretyData.hasFlightPolicy.call(consumer, flightKey);
+
+    // ASSERT
+    assert.equal(isInsured, false, "Policy should not have been created for account");
+
+
+
+  });
+
+  it('Consumer should be able to insure flight and can retrieve policy', async () => {
+
+    // ARRANGE
+    let consumer = accounts[11];
+    let flightNumber = "SWA 1627"
+    let premiumAmountEther = 1
+    let multiplier = 1.5
+    let creditAmountEther = premiumAmountEther * multiplier
+    let expectedCredit = web3.utils.toWei(creditAmountEther.toString(), 'ether')
+    let expectedRedemption = true
+    let flightTime = moment(new Date("Wed, 11 September 2019 11:45:00 GMT")).unix()
+    let flightKey = await config.flightSuretyData.getFlightKey.call(consumer,flightNumber,flightTime);
+
+
+    // ACT
+
+    try { // credit the account
+        await config.flightSuretyApp.creditPassenger(consumer, flightKey, {from: consumer});
+    }
+    catch(e) {
+        console.log(e)
+    }
+
+    let actualCredit = await config.flightSuretyData.getCreditAmount.call(consumer);
+    let policy = await config.flightSuretyData.getPolicy.call(consumer, flightKey);
+    let actualRedemption = policy[3]
+
+
+    // ASSERT
+    assert.equal(expectedCredit, actualCredit, "Expected Credit does not equal actual")
+    assert.equal(expectedRedemption,actualRedemption, "Policy Redemption Status is incorrect")
+
+
+    });
 
 
 
