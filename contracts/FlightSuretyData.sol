@@ -2,6 +2,7 @@ pragma solidity ^0.5.11;
 
 import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
+
 contract FlightSuretyData {
     using SafeMath for uint256;
 
@@ -23,9 +24,18 @@ contract FlightSuretyData {
         address[]                   voters;        // members that voted this airline in. used to prevent duplicate votes
     }
 
-     mapping(address => Airline) airlines; // Mapping for storing airlines that are registered
+    struct Policy {
+        address pHolder;        // Wallet Address of the Policy Holder (the person that purchased inssurance and will need to be paid out)
+        string  flightNumber;   // flight number that this policy covers
+        uint    premiumPaid;    // Amount of Ether paid to the policy for this flight by this address
+        bool    isRedeemed;     // Tracks whether this policy has been cashed out or not (redeemed)
+        bytes32 flightKey;      // FlightKey is used as a unique identifier for the insurance record. It combines the airline, the flight number, and the flight timestamp
 
-     uint private membershipCount = 1; // keep track of the total number of registered airlines
+    }
+
+    mapping(address => Policy[]) policies;  // Mapping of address (policy holders) to an array of polcies
+    mapping(address => Airline) airlines;   // Mapping for storing airlines that are registered
+    uint private membershipCount = 1;       // keep track of the total number of registered airlines
 
 
     /********************************************************************************************/
@@ -85,6 +95,17 @@ contract FlightSuretyData {
     /*                                       UTILITY FUNCTIONS                                  */
     /********************************************************************************************/
 
+    /*
+    * Source: https://ethereum.stackexchange.com/questions/30912/how-to-compare-strings-in-solidity
+    * Truffle wasn't playing nice with import "github.com/Arachnid/solidity-stringutils/strings.sol";
+    * So I used the strategy from the above website.
+    */
+    function compareStrings (string memory a, string memory b)
+    public view
+    returns (bool) {
+        return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))) );
+       }
+
     /**
     * @dev Get operating status of contract
     *
@@ -133,7 +154,7 @@ contract FlightSuretyData {
         return airlines[account].isRegistered;
     }
 
-     /**
+    /**
     * @dev Check if an airline is registered
     * @return A bool that indicates if the airline is registered
     */
@@ -156,12 +177,49 @@ contract FlightSuretyData {
                 if(airlines[nominee].voters[i] == nominatingAirline){
                     return true; // found a vote from this nominating airline
                 }
-                return false; // this is a new vote
+                return false; // this is a new vote //FIXME: i++ is never reached if the second vote  is this nominated airline it won't get flagged
             }
 
 
         }
 
+    }
+
+    /* hasPolicy: returns bool indicating if a policy account has been created already for this account */
+    function hasPolicy(address account) internal returns (bool) {
+        if (policies[account].length == 0) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    function getPolicyLength(address account) external returns(uint) {
+        return policies[account].length;
+    }
+
+    function hasFlightPolicy(address account, bytes32 flightKey) external returns(bool) {
+        for (uint i = 0; i < policies[account].length; i++) {
+            if (policies[account][i].flightKey == flightKey) {
+                return true; // policy exists for this flight number
+            }
+        }
+        return false; // flight number not found in list of policies
+    }
+
+    function getPolicy(address account, bytes32 flightKey) external returns(address, string memory, uint, bool,bytes32) {
+        for (uint i = 0; i < policies[account].length; i++) {
+            if (policies[account][i].flightKey == flightKey) {
+                return (
+                    policies[account][i].pHolder,
+                    policies[account][i].flightNumber,
+                    policies[account][i].premiumPaid,
+                    policies[account][i].isRedeemed,
+                    policies[account][i].flightKey
+                    );
+            }
+        }
+        // policy not found.  What do I return here?
     }
 
     /********************************************************************************************/
@@ -229,14 +287,35 @@ contract FlightSuretyData {
     * @dev Buy insurance for a flight
     *
     */
-    function buy
-                            (
-                            )
-                            external
-                            payable
+    function buy (address account, string calldata flightNumber, uint premiumPaid, bytes32 flightKey)
+        external
+        // payable // nope, application logic will be payable?
     {
-
+        // check to see if they currently have a policy in the policies mapping
+        if (hasPolicy(account)) {
+            // has account: so we need to add a new policy for this flight to the array of policies
+            Policy memory newPolicy  = Policy({
+                pHolder: account,
+                flightNumber: flightNumber,
+                premiumPaid: premiumPaid,
+                isRedeemed: false,
+                flightKey: flightKey
+            });
+            policies[account].push(newPolicy);
+        } else {
+            // doesn't have account: so we need to create an account in policies and add a new policy to the array for this flight
+            Policy memory newPolicy  = Policy({
+                pHolder: account,
+                flightNumber: flightNumber,
+                premiumPaid: premiumPaid,
+                isRedeemed: false,
+                flightKey: flightKey
+            });
+            policies[account].push(newPolicy);
+        }
     }
+
+
 
     /**
      *  @dev Credits payouts to insurees
@@ -261,49 +340,30 @@ contract FlightSuretyData {
     {
     }
 
-   /**
-    * @dev Initial funding for the insurance. Unless there are too many delayed flights
-    *      resulting in insurance payouts, the contract should be self-sustaining
-    *
-    */
-    function fund
-                            (
-                            )
-                            public
-                            payable
-    {
-    }
 
     function getFlightKey
                         (
                             address airline,
-                            string memory flight,
+                            string calldata flight,
                             uint256 timestamp
                         )
                         pure
-                        internal
+                        external
                         returns(bytes32)
     {
         return keccak256(abi.encodePacked(airline, flight, timestamp));
-    }
-
-    // Return Registered Airlines
-    function fetchAirlines()
-    external
-    {
-
     }
 
     /**
     * @dev Fallback function for funding smart contract.
     *
     */
-    function()
-                            external
-                            payable
-    {
-        fund();
-    }
+    // function()
+    //                         external
+    //                         payable
+    // {
+    //     fund();
+    // }
 
 }
 

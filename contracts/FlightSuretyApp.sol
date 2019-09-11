@@ -35,7 +35,6 @@ contract FlightSuretyApp {
         address airline;
     }
     mapping(bytes32 => Flight) private flights;
-    address[] multiCalls = new address[](0);
     uint buyIn = 10 ether; // 10 ether to buy into the registration
     uint public currentVotesNeeded;
 
@@ -140,8 +139,21 @@ contract FlightSuretyApp {
 
    }
 
+   // application counterpart to data contract where data on policies is stored.
+   function insureFlight (address account, string calldata flightNumber, uint flightTimestamp)
+   external
+   payable
+   {
 
-   /**
+       bytes32 fKey = fsData.getFlightKey(account,flightNumber,flightTimestamp);
+       bool hasPolicy = fsData.hasFlightPolicy(account, fKey);
+       require(hasPolicy == false, "Flight has already been insured for this account.");
+       fsData.buy(account, flightNumber, msg.value, fKey);
+
+   }
+
+
+   /** Register Airline
     * @dev Add an airline to the registration queue
     * first four airlines can register themselves, subsequent airlines need to be voted in.
     */
@@ -169,7 +181,7 @@ contract FlightSuretyApp {
     }
 
 
-   /**
+   /** Register Flight
     * @dev Register a future flight for insuring.
     *
     */
@@ -182,7 +194,7 @@ contract FlightSuretyApp {
 
     }
 
-   /**
+   /** Process Flight Status
     * @dev Called after oracle has updated flight status
     *
     */
@@ -328,19 +340,6 @@ contract FlightSuretyApp {
         }
     }
 
-    function getFlightKey
-                        (
-                            address airline,
-                            string memory flight,
-                            uint256 timestamp
-                        )
-                        pure
-                        internal
-                        returns(bytes32)
-    {
-        return keccak256(abi.encodePacked(airline, flight, timestamp));
-    }
-
     // Returns array of three non-duplicating integers from 0-9
     function generateIndexes
                             (
@@ -407,6 +406,8 @@ contract FsData {
     function nominateAirline(address nominatingAirline, address nominee) external {} // interface
     function approveAirline(address account) external {} // interface
     function getVoteCount(address account) external returns(uint) {} //interface
-
+    function getFlightKey(address airline, string calldata flight, uint256 timestamp) pure external returns(bytes32) {} // interface
+    function hasFlightPolicy(address account, bytes32 flightKey) external returns(bool) {} // interface
+    function buy (address account, string calldata flightNumber, uint premiumPaid, bytes32 flightKey) external {} //interface
 }
 
