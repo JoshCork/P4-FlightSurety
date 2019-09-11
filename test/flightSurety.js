@@ -1,6 +1,8 @@
 
 var Test = require('../config/testConfig.js');
 var BigNumber = require('bignumber.js');
+var moment = require('moment');
+
 
 contract('Flight Surety Tests', async (accounts) => {
 
@@ -193,12 +195,41 @@ contract('Flight Surety Tests', async (accounts) => {
     let result2 = await config.flightSuretyData.isAirlineApproved.call(approvalAir);
     let result = result1 && result2
 
-    console.log(`isRegistered?: ${result1}`)
-    console.log(`isApproved??: ${result2}`)
-
-
     // ASSERT
     assert.equal(result, true, "Airline should have been registered and approved");
+
+  });
+
+  it('Consumer should be able to insure flight and can retrieve policy', async () => {
+
+    // ARRANGE
+    let consumer = accounts[11];
+    let flightNumber = "SWA 1627"
+    let premiumAmount = web3.utils.toWei('1', 'ether')
+    let flightTime = moment(new Date("Wed, 11 September 2019 11:45:00 GMT")).unix()
+    let flightKey = await config.flightSuretyData.getFlightKey.call(consumer,flightNumber,flightTime);
+
+
+    // ACT
+
+    try { // register once there are enough votes
+        await config.flightSuretyApp.insureFlight(consumer, flightNumber, flightTime, {from: consumer, value: premiumAmount});
+    }
+    catch(e) {
+        console.log(e)
+    }
+
+    let isInsured = await config.flightSuretyData.hasFlightPolicy.call(consumer, flightKey);
+    let policy = await config.flightSuretyData.getPolicy.call(consumer, flightKey);
+
+    // ASSERT
+    assert.equal(isInsured, true, "Policy should have been created for account");
+    assert.equal(consumer,policy[0], "Policy Holder Account is incorrect.")
+    assert.equal(flightNumber, policy[1], "Flight number retrieved is incorrect.")
+    assert.equal(premiumAmount,policy[2], "Premium Retrieved is incorrect")
+    assert.equal(false,policy[3], "Policy Redemption Status is incorrect")
+    assert.equal(flightKey,policy[4], "Flightkey retrieved is incorrect.")
+
 
   });
 
