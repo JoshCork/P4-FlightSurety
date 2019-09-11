@@ -57,7 +57,7 @@ contract FlightSuretyApp {
         _;  // All modifiers require an "_" which indicates where the function body will be added
     }
 
-    modifier requireMaxEther()
+    modifier requireMaxEther() //TODO: make this a constant instead of a hard coded number
     {
         require(msg.value <= 1 ether, "Cannot insure for more than 1 ether of value.");
         _;
