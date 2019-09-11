@@ -257,7 +257,7 @@ contract('Flight Surety Tests', async (accounts) => {
 
   });
 
-  it('Consumer should be able to insure flight and can retrieve policy', async () => {
+  it('Consumer can be credited for flight delays and redemption recorded', async () => {
 
     // ARRANGE
     let consumer = accounts[11];
