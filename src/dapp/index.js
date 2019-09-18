@@ -3,7 +3,6 @@ import DOM from './dom';
 import Contract from './contract';
 import './flightsurety.css';
 
-
 (async() => {
 
     let result = null;
@@ -13,21 +12,37 @@ import './flightsurety.css';
         // Read transaction
         contract.isOperational((error, result) => {
             console.log(error,result);
+            console.log("I'm in isOperational yo.")
             display('Operational Status', 'Check if contract is operational', [ { label: 'Operational Status', error: error, value: result} ]);
         });
-    
+
 
         // User-submitted transaction
         DOM.elid('submit-oracle').addEventListener('click', () => {
+            console.log("I've clicked the submit-oracle button yo!")
             let flight = DOM.elid('flight-number').value;
             // Write transaction
             contract.fetchFlightStatus(flight, (error, result) => {
                 display('Oracles', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: result.flight + ' ' + result.timestamp} ]);
             });
         })
-    
+
+
+         // User-submitted transaction
+         DOM.elid('insure-flight').addEventListener('click', () => {
+            console.log("I've clicked the insure-flight button yo!")
+            let flight = DOM.elid('flight-number').value;
+            let flightTime = DOM.elid('flight-time').value;
+            let eAmount = DOM.elid('ether-amount').value;
+            console.log(`flightTime: ${flightTime}`)
+            // Write transaction
+            contract.insureFlight(eAmount, flight, flightTime, (error, result) => {
+                console.log(error,result);
+                display('Flight Insurance', 'This flight should have been insured', [ { label: 'Flight Insurance', error: error, value: result} ]);
+            });
+        })
     });
-    
+
 
 })();
 

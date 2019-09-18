@@ -173,6 +173,13 @@ contract FlightSuretyApp {
        fsData.creditInsuree(account, payout, flightKey);
    }
 
+   // payPassenger transfers the amount of Ether that they have in their credit account from insurance payouts
+   function payPassenger() external {
+       uint balance = fsData.getCreditAmount(msg.sender);
+       fsData.clearCredits(msg.sender);
+       msg.sender.transfer(balance);
+   }
+
 
    /** Register Airline
     * @dev Add an airline to the registration queue
@@ -229,6 +236,8 @@ contract FlightSuretyApp {
                                 internal
                                 pure
     {
+        bytes32 fKey = fsData.getFlightKey(account,flightNumber,flightTimestamp);
+
     }
 
 
@@ -433,6 +442,7 @@ contract FsData {
     function creditInsuree(address account, uint payout, bytes32 flightKey) external {} //interface
     function getPolicy(address account, bytes32 flightKey) external returns(address, string memory, uint, bool,bytes32) {} // interface
     function getCreditAmount(address account) external returns (uint) {} // interface
+    function clearCredits(address account) external {} // interface
 
 }
 

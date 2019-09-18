@@ -33,6 +33,7 @@ contract FlightSuretyData {
 
     }
 
+    mapping(bytes32 => uint8)       statusLog   // Mapping of flight codes to official status as determined by the oracle
     mapping(address => Policy[])    policies;   // Mapping of address (policy holders) to an array of polcies
     mapping(address => Airline)     airlines;   // Mapping for storing airlines that are registered
     mapping(address => uint)        credits;    // Mapping to store the amount of credit each account has pending withrawl
@@ -94,7 +95,7 @@ contract FlightSuretyData {
 
     modifier hasCredit(address account)
     {
-        require(credits[account] > 0, "account does not have any credit");
+        require(credits[account] >= 0, "account does not have a credit account");
         _;
     }
 
@@ -134,6 +135,7 @@ contract FlightSuretyData {
         return airlines[account].voteCount;
     }
 
+    // getCreditAmount returns the amount of credit on file for a given address
     function getCreditAmount(address account)
     hasCredit(account)
     external returns (uint)
@@ -358,21 +360,18 @@ contract FlightSuretyData {
     }
 
     /**
-     *  @dev Transfers eligible payout funds to insuree
-     *
+     *  @dev clearCredits
+     *  Payment has been issued to passenger per their request.
+     *  This function will then clear out the credits on file for that passenger.
     */
-    function pay
-                            (
-                            )
-                            external
-                            pure
-    {
+    function clearCredits(address account) external {
+        credits[account] = 0;
     }
 
 
     function getFlightKey
                         (
-                            address airline,
+                            address account, // can be used for both airline and passenger
                             string calldata flight,
                             uint256 timestamp
                         )
@@ -380,7 +379,7 @@ contract FlightSuretyData {
                         external
                         returns(bytes32)
     {
-        return keccak256(abi.encodePacked(airline, flight, timestamp));
+        return keccak256(abi.encodePacked(account, flight, timestamp));
     }
 
     /**

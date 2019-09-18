@@ -7,10 +7,10 @@
     <title>FlightSurety</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
+
 </head>
 
 <body>
-
     <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
         <a class="navbar-brand" href="#">FlightSurety</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault"
@@ -23,8 +23,34 @@
 
         <div id="display-wrapper" class="top-20">
         </div>
+         <div class="row top-20">
+            <input type="text" id="ether-amount" placeholder="amount of ether">
+
+            <select id="flight-number">
+            <option value=""> -- CHOOSE A FLIGHT -- </option>
+            <option value="flight1234"> Flight 1234 </option>
+            <option value="flight1235"> Flight 1235 </option>
+            <option value="flight1236"> Flight 1236 </option>
+            <option value="flight1237"> Flight 1237 </option>
+            <option value="flight1238"> Flight 1238 </option>
+            </select>
+            &nbsp
+            <select id="flight-time">
+            <option value=""> -- CHOOSE A TIME -- </option>
+            <option value="1568746800"> 12:00 PM </option>
+            <option value="1568750400"> 1:00 PM </option>
+            <option value="1568754000"> 2:00 PM </option>
+            <option value="1568757600"> 3:00 PM </option>
+            <option value="1568761200"> 4:00 PM </option>
+            </select>
+
+
+            <btn class="btn btn-primary" id="insure-flight">Insure Flight</btn>
+        </div>
         <div class="row top-20">
             <label class="form">Flight</label> <input type="text" id="flight-number"> <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
+        </div>
+        <div id="display-wrapper" class="top-20">
         </div>
     </main>
 

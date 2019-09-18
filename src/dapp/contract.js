@@ -16,11 +16,11 @@ export default class Contract {
 
     initialize(callback) {
         this.web3.eth.getAccounts((error, accts) => {
-           
+
             this.owner = accts[0];
 
             let counter = 1;
-            
+
             while(this.airlines.length < 5) {
                 this.airlines.push(accts[counter++]);
             }
@@ -40,13 +40,29 @@ export default class Contract {
             .call({ from: self.owner}, callback);
     }
 
+    insureFlight(ether,flight,fTime, callback){
+        let self = this;
+        let premium = this.web3.utils.toWei(ether.toString(), 'ether')
+        let data = {
+            passenger: this.passengers[0],
+            timeStamp: fTime,
+            flightNumber: flight,
+        }
+        console.log(`timestamp: ${data.timeStamp}`)
+        console.log(`passenger: ${data.passenger}`)
+        console.log(`flightNumber: ${data.flightNumber}`)
+        self.flightSuretyApp.methods
+            .insureFlight(data.passenger, data.flightNumber, data.timeStamp)
+            .call({from:data.passenger, value: premium}, callback);
+    }
+
     fetchFlightStatus(flight, callback) {
         let self = this;
         let payload = {
             airline: self.airlines[0],
             flight: flight,
             timestamp: Math.floor(Date.now() / 1000)
-        } 
+        }
         self.flightSuretyApp.methods
             .fetchFlightStatus(payload.airline, payload.flight, payload.timestamp)
             .send({ from: self.owner}, (error, result) => {

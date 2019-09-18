@@ -196,7 +196,7 @@ contract('Flight Surety Tests', async (accounts) => {
 
   });
 
-  it('Consumer should be able to insure flight and can retrieve policy', async () => {
+  it('Passenger should be able to insure flight and can retrieve policy', async () => {
 
     // ARRANGE
     let consumer = accounts[11];
@@ -229,7 +229,7 @@ contract('Flight Surety Tests', async (accounts) => {
 
   });
 
-  it('Consumer should not be able to insure flight for more than 1 ether', async () => {
+  it('Passenger should not be able to insure flight for more than 1 ether', async () => {
 
     // ARRANGE
     let consumer = accounts[12];
@@ -257,7 +257,7 @@ contract('Flight Surety Tests', async (accounts) => {
 
   });
 
-  it('Consumer can be credited for flight delays and redemption recorded', async () => {
+  it('Passenger can be credited for flight delays and redemption recorded', async () => {
 
     // ARRANGE
     let consumer = accounts[11];
@@ -288,6 +288,45 @@ contract('Flight Surety Tests', async (accounts) => {
     // ASSERT
     assert.equal(expectedCredit, actualCredit, "Expected Credit does not equal actual")
     assert.equal(expectedRedemption,actualRedemption, "Policy Redemption Status is incorrect")
+
+
+    });
+
+  it('Passenger can withdraw credit and credits are reset to zero', async () => {
+
+    // ARRANGE
+    let passenger = accounts[11];
+    let expectedCredit = web3.utils.toWei("0", 'ether')
+    let expectedIncreaseAbove = web3.utils.toWei("1.4", 'ether')
+    let startingBalance = await web3.eth.getBalance(passenger)
+    let startingCredit = await config.flightSuretyData.getCreditAmount.call(passenger);
+
+
+    // ACT
+
+    try { // credit the account
+        await config.flightSuretyApp.payPassenger({from: passenger});
+    }
+    catch(e) {
+        console.log(e)
+    }
+
+    let actualCredit = await config.flightSuretyData.getCreditAmount.call(passenger);
+    let endingBalance = await web3.eth.getBalance(passenger)
+    let actualIncrease = endingBalance - startingBalance
+    let transactionFee = expectedIncreaseAbove - actualIncrease
+
+    // console.log(`startingCredit:    ${startingCredit}`)
+    // console.log(`actualCredit:      ${actualCredit}`)
+    // console.log(`startingBalance:   ${startingBalance}`)
+    // console.log(`endingBalance :    ${endingBalance}`)
+    // console.log(`actualIncrease:    ${actualIncrease}`)
+    // console.log(`transactionFee:    ${transactionFee}`)
+
+    // ASSERT
+    assert.equal(expectedCredit, actualCredit, "Expected Credit does not equal actual")
+    // TODO: need to get the transaction number and look at the receipt and make sure the balance increases by the expected amount
+    // assert.isAbove(expectedIncreaseAbove,actualIncrease, "Passenger did not receive correct payout")
 
 
     });
