@@ -33,7 +33,7 @@ contract FlightSuretyData {
 
     }
 
-    mapping(bytes32 => uint8)       statusLog   // Mapping of flight codes to official status as determined by the oracle
+    mapping(bytes32 => uint8)       statusLog;   // Mapping of flight codes to official status as determined by the oracle
     mapping(address => Policy[])    policies;   // Mapping of address (policy holders) to an array of polcies
     mapping(address => Airline)     airlines;   // Mapping for storing airlines that are registered
     mapping(address => uint)        credits;    // Mapping to store the amount of credit each account has pending withrawl
@@ -96,6 +96,16 @@ contract FlightSuretyData {
     modifier hasCredit(address account)
     {
         require(credits[account] >= 0, "account does not have a credit account");
+        _;
+    }
+
+    modifier flightNotLogged(bytes32 fKey){
+        require (statusLog[fKey] == 0, "Flight status has already been logged");
+        _;
+    }
+
+    modifier flightLogged(bytes32 fKey){
+        require (statusLog[fKey] != 0, "Flight status has not been logged");
         _;
     }
 
@@ -168,6 +178,20 @@ contract FlightSuretyData {
         returns (bool)
     {
         return airlines[account].isRegistered;
+    }
+
+    function isFlightLogged(bytes32 fKey) external returns(bool) {
+        if(statusLog[fKey] == 0){
+            return false;
+        }
+        return true;
+    }
+
+    function getFlightLog(bytes32 fKey)
+    external
+    flightLogged(fKey)
+    returns(uint8) {
+        return statusLog[fKey];
     }
 
     /**
@@ -253,6 +277,14 @@ contract FlightSuretyData {
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
+
+
+    function logFlighStatus(bytes32 fKey, uint8 sCode)
+    external
+    flightNotLogged(fKey)
+    {
+        statusLog[fKey] = sCode;
+    }
 
    /**
     * @dev Add an airline to the registration queue

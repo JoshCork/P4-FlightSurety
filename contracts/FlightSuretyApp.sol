@@ -159,18 +159,33 @@ contract FlightSuretyApp {
 
    }
 
-   function creditPassenger (address account, bytes32 flightKey) external {
+   function creditPassenger (address airline, address account, string calldata flightNbr, uint256 flightTime) external  returns(string memory){
+       bytes32 flightKey = fsData.getFlightKey(account, flightNbr, flightTime);
        require(fsData.hasFlightPolicy(account, flightKey),"This flight is not insured for this account");
-       // TODO: Check with the oracles to see if flight can be credited
+       string statusMsg = "";
+       // TODO: Check to see if flight status has already been recorded and proceed accordingly
+       if(isFlightLogged(flightKey)){
+           if(getFlightLog(flightKey) == STATUS_CODE_LATE_AIRLINE) {// The airline is late --> time to pay up!
+               // Determine the amount of insurance that was placed on this flight by this passenger
+                ( , ,uint iAmount, , ) = fsData.getPolicy(account, flightKey);
 
-       // Determine the amount of insurance that was placed on this flight by this passenger
-       ( , ,uint iAmount, , ) = fsData.getPolicy(account, flightKey);
+                // Use safemath to determin the payout based on the constant payout amount
+                uint payout = iAmount.div(4).mul(6); //TODO: make this so it isn't hard coded into the contract and instead use a constant
 
-       // Use safemath to determin the payout based on the constant payout amount
-       uint payout = iAmount.div(4).mul(6); //TODO: make this so it isn't hard coded into the contract and instead use a constant
+                // Call creditInsuree() passing along the account, flightkey, and the payout amount calculated here.
+                fsData.creditInsuree(account, payout, flightKey);
+                statusMsg = "Account has been credited";
+                return statusMsg;
+           } else {
+               statusMsg = "Flight delay reason is not elligeable for payout.";
+               return statusMsg;
+           }
 
-       // Call creditInsuree() passing along the account, flightkey, and the payout amount calculated here.
-       fsData.creditInsuree(account, payout, flightKey);
+       } else { // --> Request oracle input for flight
+               fetchFlightStatus(airline,flightNbr,flightTime);
+               statusMsg = "Flight status has been requested, please try again later";
+               return statusMsg;
+           }
    }
 
    // payPassenger transfers the amount of Ether that they have in their credit account from insurance payouts
@@ -225,7 +240,7 @@ contract FlightSuretyApp {
    /** Process Flight Status
     * @dev Called after oracle has updated flight status
     *
-    */
+    **/
     function processFlightStatus
                                 (
                                     address airline,
@@ -237,7 +252,7 @@ contract FlightSuretyApp {
                                 pure
     {
         bytes32 fKey = fsData.getFlightKey(account,flightNumber,flightTimestamp);
-
+        fsData.logFlightStatus(fKey, statusCode);
     }
 
 
@@ -443,6 +458,8 @@ contract FsData {
     function getPolicy(address account, bytes32 flightKey) external returns(address, string memory, uint, bool,bytes32) {} // interface
     function getCreditAmount(address account) external returns (uint) {} // interface
     function clearCredits(address account) external {} // interface
+    function logFlighStatus(bytes32 fKey, uint8 sCode) external {} //interface
+    function isFlightLogged(bytes32 fKey) external returns(bool) {} // interface
 
 }
 

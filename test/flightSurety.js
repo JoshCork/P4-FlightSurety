@@ -261,6 +261,7 @@ contract('Flight Surety Tests', async (accounts) => {
 
     // ARRANGE
     let consumer = accounts[11];
+    let airline = accounts[2];
     let flightNumber = "SWA 1627"
     let premiumAmountEther = 1
     let multiplier = 1.5
@@ -274,7 +275,7 @@ contract('Flight Surety Tests', async (accounts) => {
     // ACT
 
     try { // credit the account
-        await config.flightSuretyApp.creditPassenger(consumer, flightKey, {from: consumer});
+        await config.flightSuretyApp.creditPassenger(airline, consumer, flightNumber, flightTime, {from: consumer});
     }
     catch(e) {
         console.log(e)
