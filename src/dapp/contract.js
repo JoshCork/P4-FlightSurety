@@ -18,6 +18,7 @@ export default class Contract {
         this.web3.eth.getAccounts((error, accts) => {
 
             this.owner = accts[0];
+            this.airline = accts[2];
 
             let counter = 1;
 
