@@ -162,10 +162,10 @@ contract FlightSuretyApp {
    function creditPassenger (address airline, address account, string calldata flightNbr, uint256 flightTime) external  returns(string memory){
        bytes32 flightKey = fsData.getFlightKey(account, flightNbr, flightTime);
        require(fsData.hasFlightPolicy(account, flightKey),"This flight is not insured for this account");
-       string statusMsg = "";
+       string memory statusMsg = "";
        // TODO: Check to see if flight status has already been recorded and proceed accordingly
-       if(isFlightLogged(flightKey)){
-           if(getFlightLog(flightKey) == STATUS_CODE_LATE_AIRLINE) {// The airline is late --> time to pay up!
+       if(fsData.isFlightLogged(flightKey)){
+           if(fsData.getFlightLog(flightKey) == STATUS_CODE_LATE_AIRLINE) {// The airline is late --> time to pay up!
                // Determine the amount of insurance that was placed on this flight by this passenger
                 ( , ,uint iAmount, , ) = fsData.getPolicy(account, flightKey);
 
@@ -249,9 +249,8 @@ contract FlightSuretyApp {
                                     uint8 statusCode
                                 )
                                 internal
-                                pure
     {
-        bytes32 fKey = fsData.getFlightKey(account,flightNumber,flightTimestamp);
+        bytes32 fKey = fsData.getFlightKey(airline,flight,timestamp);
         fsData.logFlightStatus(fKey, statusCode);
     }
 
@@ -261,10 +260,10 @@ contract FlightSuretyApp {
     function fetchFlightStatus
                         (
                             address airline,
-                            string calldata flight,
+                            string memory flight,
                             uint256 timestamp
                         )
-                        external
+                        internal
     {
         uint8 index = getRandomIndex(msg.sender);
 
@@ -451,15 +450,16 @@ contract FsData {
     function nominateAirline(address nominatingAirline, address nominee) external {} // interface
     function approveAirline(address account) external {} // interface
     function getVoteCount(address account) external returns(uint) {} //interface
-    function getFlightKey(address airline, string calldata flight, uint256 timestamp) pure external returns(bytes32) {} // interface
+    function getFlightKey(address airline, string calldata flight, uint256 timestamp) external returns(bytes32) {} // interface
     function hasFlightPolicy(address account, bytes32 flightKey) external returns(bool) {} // interface
     function buy (address account, string calldata flightNumber, uint premiumPaid, bytes32 flightKey) external {} //interface
     function creditInsuree(address account, uint payout, bytes32 flightKey) external {} //interface
     function getPolicy(address account, bytes32 flightKey) external returns(address, string memory, uint, bool,bytes32) {} // interface
     function getCreditAmount(address account) external returns (uint) {} // interface
     function clearCredits(address account) external {} // interface
-    function logFlighStatus(bytes32 fKey, uint8 sCode) external {} //interface
-    function isFlightLogged(bytes32 fKey) external returns(bool) {} // interface
+    function logFlightStatus(bytes32 fKey, uint8 sCode) external view {} //interface
+    function isFlightLogged(bytes32 fKey) external view returns(bool) {} // interface
+    function getFlightLog(bytes32 fKey)  external view returns(uint8) {} //interface
 
 }
 

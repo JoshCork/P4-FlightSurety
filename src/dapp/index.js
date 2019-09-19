@@ -2,10 +2,18 @@
 import DOM from './dom';
 import Contract from './contract';
 import './flightsurety.css';
+import Web3 from 'web3';
 
 (async() => {
 
+
+    let web3 = new Web3(new Web3.providers.WebsocketProvider('ws://localhost:7545'));
     let result = null;
+    let accounts = web3.eth.getAccounts();
+
+    console.log(accounts[11]);
+
+
 
     let contract = new Contract('localhost', () => {
 
@@ -17,15 +25,15 @@ import './flightsurety.css';
         });
 
 
-        // User-submitted transaction
-        DOM.elid('submit-oracle').addEventListener('click', () => {
-            console.log("I've clicked the submit-oracle button yo!")
-            let flight = DOM.elid('flight-number').value;
-            // Write transaction
-            contract.fetchFlightStatus(flight, (error, result) => {
-                display('Oracles', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: result.flight + ' ' + result.timestamp} ]);
-            });
-        })
+        // User-submitted transaction --> Not called directly in my HTML
+        // DOM.elid('submit-oracle').addEventListener('click', () => {
+        //     console.log("I've clicked the submit-oracle button yo!")
+        //     let flight = DOM.elid('flight-number').value;
+        //     // Write transaction
+        //     contract.fetchFlightStatus(flight, (error, result) => {
+        //         display('Oracles', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: result.flight + ' ' + result.timestamp} ]);
+        //     });
+        // })
 
 
          // User-submitted transaction
@@ -41,6 +49,24 @@ import './flightsurety.css';
                 display('Flight Insurance', 'This flight should have been insured', [ { label: 'Flight Insurance', error: error, value: result} ]);
             });
         })
+
+        // User-submitted transaction
+        DOM.elid('payout-flight').addEventListener('click', () => {
+            console.log("I've clicked the payout-flight button yo!")
+            let flight = DOM.elid('flight-number-payout').value;
+            let flightTime = DOM.elid('flight-time-payout').value;
+            let airline = accounts[2];
+            let passenger = accounts[11];
+
+            console.log(`flightTime: ${flightTime}`)
+            console.log(`airline: ${airline}`)
+            // Write transaction
+            contract.creditPassenger(airline, passenger, flight, flightTime, (error, result) => {
+                console.log(error,result);
+                display('Reimbursement Status', 'We have made the request', [ { label: 'Flight Insurance', error: error, value: result} ]);
+            });
+        })
+
     });
 
 

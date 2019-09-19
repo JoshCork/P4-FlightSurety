@@ -43,12 +43,27 @@
             <option value="1568757600"> 3:00 PM </option>
             <option value="1568761200"> 4:00 PM </option>
             </select>
-
-
             <btn class="btn btn-primary" id="insure-flight">Insure Flight</btn>
         </div>
         <div class="row top-20">
-            <label class="form">Flight</label> <input type="text" id="flight-number"> <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
+            <select id="flight-number-payout">
+            <option value=""> -- CHOOSE A FLIGHT -- </option>
+            <option value="flight1234"> Flight 1234 </option>
+            <option value="flight1235"> Flight 1235 </option>
+            <option value="flight1236"> Flight 1236 </option>
+            <option value="flight1237"> Flight 1237 </option>
+            <option value="flight1238"> Flight 1238 </option>
+            </select>
+            &nbsp
+            <select id="flight-time-payout">
+            <option value=""> -- CHOOSE A TIME -- </option>
+            <option value="1568746800"> 12:00 PM </option>
+            <option value="1568750400"> 1:00 PM </option>
+            <option value="1568754000"> 2:00 PM </option>
+            <option value="1568757600"> 3:00 PM </option>
+            <option value="1568761200"> 4:00 PM </option>
+            </select>
+            <btn class="btn btn-primary" id="payout-flight">Request Reimbursement</btn>
         </div>
         <div id="display-wrapper" class="top-20">
         </div>

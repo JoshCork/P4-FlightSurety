@@ -189,6 +189,7 @@ contract FlightSuretyData {
 
     function getFlightLog(bytes32 fKey)
     external
+    view
     flightLogged(fKey)
     returns(uint8) {
         return statusLog[fKey];
@@ -279,7 +280,7 @@ contract FlightSuretyData {
     /********************************************************************************************/
 
 
-    function logFlighStatus(bytes32 fKey, uint8 sCode)
+    function logFlightStatus(bytes32 fKey, uint8 sCode)
     external
     flightNotLogged(fKey)
     {
@@ -407,7 +408,7 @@ contract FlightSuretyData {
                             string calldata flight,
                             uint256 timestamp
                         )
-                        pure
+                        view
                         external
                         returns(bytes32)
     {

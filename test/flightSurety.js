@@ -269,10 +269,20 @@ contract('Flight Surety Tests', async (accounts) => {
     let expectedCredit = web3.utils.toWei(creditAmountEther.toString(), 'ether')
     let expectedRedemption = true
     let flightTime = moment(new Date("Wed, 11 September 2019 11:45:00 GMT")).unix()
+    let statusCode = web3.eth.abi.encodeParameter('uint8', 20)
     let flightKey = await config.flightSuretyData.getFlightKey.call(consumer,flightNumber,flightTime);
-
+    let logKey = await config.flightSuretyData.getFlightKey.call(airline,flightNumber,flightTime);
+    let result = await config.flightSuretyData.logFlightStatus.call(logKey, statusCode)
+    console.log(`result: ${result}`)
+    console.log(`statusCode: ${statusCode}`)
 
     // ACT
+
+    try {
+       await config.flightSuretyData.logFlightStatus(logKey, statusCode);
+    } catch(e) {
+        console.log(e)
+    }
 
     try { // credit the account
         await config.flightSuretyApp.creditPassenger(airline, consumer, flightNumber, flightTime, {from: consumer});

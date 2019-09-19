@@ -56,6 +56,19 @@ export default class Contract {
             .call({from:data.passenger, value: premium}, callback);
     }
 
+    creditPassenger(airline, account, flightNbr, flightTime, callback){
+        let self = this;
+        let data = {
+            airline: airline,
+            passenger: account,
+            flightNumber: flightNbr,
+            timeStamp: flightTime,
+        }
+        self.flightSuretyApp.methods
+            .creditPassenger(data.airline, data.passenger, data.flightNumber, data.timeStamp)
+            .call({from:data.passenger}, callback);
+    }
+
     fetchFlightStatus(flight, callback) {
         let self = this;
         let payload = {
