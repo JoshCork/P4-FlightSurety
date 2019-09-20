@@ -7,11 +7,11 @@ import Web3 from 'web3';
 (async() => {
 
 
-    let web3 = new Web3(new Web3.providers.WebsocketProvider('ws://localhost:7545'));
+    let web3 = new Web3(new Web3.providers.WebsocketProvider('ws://localhost:8545'));
     let result = null;
-    let accounts = web3.eth.getAccounts();
+    let accounts = await web3.eth.getAccounts();
 
-    console.log(accounts[11]);
+    console.log(`account 11: ${accounts[11]}`);
 
 
 
@@ -42,9 +42,10 @@ import Web3 from 'web3';
             let flight = DOM.elid('flight-number').value;
             let flightTime = DOM.elid('flight-time').value;
             let eAmount = DOM.elid('ether-amount').value;
+            let passenger = accounts[11];
             console.log(`flightTime: ${flightTime}`)
             // Write transaction
-            contract.insureFlight(eAmount, flight, flightTime, (error, result) => {
+            contract.insureFlight(eAmount, passenger, flight, flightTime, (error, result) => {
                 console.log(error,result);
                 display('Flight Insurance', 'This flight should have been insured', [ { label: 'Flight Insurance', error: error, value: result} ]);
             });
@@ -60,6 +61,8 @@ import Web3 from 'web3';
 
             console.log(`flightTime: ${flightTime}`)
             console.log(`airline: ${airline}`)
+            console.log(`html flight: ${flight}`)
+            console.log(`html passenter: ${passenger}`)
             // Write transaction
             contract.creditPassenger(airline, passenger, flight, flightTime, (error, result) => {
                 console.log(error,result);

@@ -161,6 +161,7 @@ contract FlightSuretyApp {
 
    function creditPassenger (address airline, address account, string calldata flightNbr, uint256 flightTime) external  returns(string memory){
        bytes32 flightKey = fsData.getFlightKey(account, flightNbr, flightTime);
+       emit InsuranceInfo(account, flightNbr, flightTime, flightKey);
        require(fsData.hasFlightPolicy(account, flightKey),"This flight is not insured for this account");
        string memory statusMsg = "";
        // TODO: Check to see if flight status has already been recorded and proceed accordingly
@@ -276,6 +277,12 @@ contract FlightSuretyApp {
 
         emit OracleRequest(index, airline, flight, timestamp);
     }
+
+    /********************************************************************************************/
+    /*                                    TROUBLESHOOTING EVENTS                              */
+    /********************************************************************************************/
+    event InsuranceInfo(address passenger, string flight, uint256 timestamp, bytes32 flightKey);
+
 
     /********************************************************************************************/
     /*                                    region ORACLE MANAGEMENT                              */

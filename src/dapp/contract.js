@@ -41,11 +41,11 @@ export default class Contract {
             .call({ from: self.owner}, callback);
     }
 
-    insureFlight(ether,flight,fTime, callback){
+    insureFlight(ether,passenger, flight,fTime, callback){
         let self = this;
         let premium = this.web3.utils.toWei(ether.toString(), 'ether')
         let data = {
-            passenger: this.passengers[0],
+            passenger: passenger,
             timeStamp: fTime,
             flightNumber: flight,
         }
@@ -65,6 +65,11 @@ export default class Contract {
             flightNumber: flightNbr,
             timeStamp: flightTime,
         }
+
+        console.log(`timestamp: ${data.timeStamp}`)
+        console.log(`passenger: ${data.passenger}`)
+        console.log(`flightNumber: ${data.flightNumber}`)
+
         self.flightSuretyApp.methods
             .creditPassenger(data.airline, data.passenger, data.flightNumber, data.timeStamp)
             .call({from:data.passenger}, callback);
