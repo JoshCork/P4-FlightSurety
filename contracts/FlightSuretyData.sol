@@ -239,9 +239,9 @@ contract FlightSuretyData {
         return policies[account].length;
     }
 
-    function hasFlightPolicy(address account, bytes32 flightKey) public returns(bool) {
+    function hasFlightPolicy(address account, bytes32 fKey) public returns(bool) {
         for (uint i = 0; i < policies[account].length; i++) {
-            if (policies[account][i].flightKey == flightKey) {
+            if (policies[account][i].flightKey == fKey) {
                 return true; // policy exists for this flight
             }
         }

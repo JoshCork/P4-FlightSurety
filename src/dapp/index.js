@@ -7,7 +7,7 @@ import Web3 from 'web3';
 (async() => {
 
 
-    let web3 = new Web3(new Web3.providers.WebsocketProvider('ws://localhost:8545'));
+    let web3 = new Web3(new Web3.providers.WebsocketProvider('ws://localhost:7545'));
     let result = null;
     let accounts = await web3.eth.getAccounts();
 

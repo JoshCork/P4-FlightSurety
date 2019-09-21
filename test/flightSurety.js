@@ -229,6 +229,40 @@ contract('Flight Surety Tests', async (accounts) => {
 
   });
 
+  it('Passenger should not be able to insure the same flight twice', async () => {
+
+    // ARRANGE
+    let consumer = accounts[11];
+    let flightNumber = "SWA 1627"
+    let premiumAmount = web3.utils.toWei('.5', 'ether')
+    let flightTime = moment(new Date("Wed, 11 September 2019 11:45:00 GMT")).unix()
+    let flightKey = await config.flightSuretyData.getFlightKey.call(consumer,flightNumber,flightTime);
+
+
+    // ACT
+
+    try { // register once there are enough votes
+        await config.flightSuretyApp.insureFlight(consumer, flightNumber, flightTime, {from: consumer, value: premiumAmount});
+    }
+    catch(e) {
+        // console.log(e)
+    }
+
+    let isInsured = await config.flightSuretyData.hasFlightPolicy.call(consumer, flightKey);
+    let policy = await config.flightSuretyData.getPolicy.call(consumer, flightKey);
+
+    // ASSERT
+    assert.equal(isInsured, true, "Policy should have been created for account");
+    assert.equal(consumer,policy[0], "Policy Holder Account is incorrect.")
+    assert.equal(flightNumber, policy[1], "Flight number retrieved is incorrect.")
+    assert.notEqual(premiumAmount,policy[2], "Premium Retrieved is incorrect")
+    assert.equal(false,policy[3], "Policy Redemption Status is incorrect")
+    assert.equal(flightKey,policy[4], "Flightkey retrieved is incorrect.")
+
+
+  });
+
+
   it('Passenger should not be able to insure flight for more than 1 ether', async () => {
 
     // ARRANGE
@@ -273,8 +307,6 @@ contract('Flight Surety Tests', async (accounts) => {
     let flightKey = await config.flightSuretyData.getFlightKey.call(consumer,flightNumber,flightTime);
     let logKey = await config.flightSuretyData.getFlightKey.call(airline,flightNumber,flightTime);
     let result = await config.flightSuretyData.logFlightStatus.call(logKey, statusCode)
-    console.log(`result: ${result}`)
-    console.log(`statusCode: ${statusCode}`)
 
     // ACT
 

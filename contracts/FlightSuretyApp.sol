@@ -150,19 +150,23 @@ contract FlightSuretyApp {
    requireMaxEther()
    external
    payable
+   returns (string memory)
    {
-
+       string memory statusMsg = "";
        bytes32 fKey = fsData.getFlightKey(account,flightNumber,flightTimestamp);
        bool hasPolicy = fsData.hasFlightPolicy(account, fKey);
        require(hasPolicy == false, "Flight has already been insured for this account.");
        fsData.buy(account, flightNumber, msg.value, fKey);
+       emit InsureFlightDetails(account, flightNumber, flightTimestamp, fKey, hasPolicy);
+       statusMsg = "hasPolicy passed, buy passed, event emitted, insurance purchased";
+       return statusMsg;
 
    }
 
    function creditPassenger (address airline, address account, string calldata flightNbr, uint256 flightTime) external  returns(string memory){
        bytes32 flightKey = fsData.getFlightKey(account, flightNbr, flightTime);
        emit InsuranceInfo(account, flightNbr, flightTime, flightKey);
-       require(fsData.hasFlightPolicy(account, flightKey),"This flight is not insured for this account");
+       require(fsData.hasFlightPolicy(account, flightKey) == true,"This flight is not insured for this account");
        string memory statusMsg = "";
        // TODO: Check to see if flight status has already been recorded and proceed accordingly
        if(fsData.isFlightLogged(flightKey)){
@@ -282,6 +286,7 @@ contract FlightSuretyApp {
     /*                                    TROUBLESHOOTING EVENTS                              */
     /********************************************************************************************/
     event InsuranceInfo(address passenger, string flight, uint256 timestamp, bytes32 flightKey);
+    event InsureFlightDetails(address account, string flightNumber, uint256 flightTimeStamp, bytes32 fKey, bool hasPolicy);
 
 
     /********************************************************************************************/
