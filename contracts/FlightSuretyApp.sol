@@ -82,13 +82,27 @@ contract FlightSuretyApp {
         _;
     }
 
+    modifier flightPolicyExists(address passenger, string memory flightNumber, uint256 flightTime){
+        bytes32 fKey = fsData.getFlightKey(passenger,flightNumber,flightTime);
+        ( , , ,bool policyExists) = fsData.hasFlightPolicy(passenger, fKey);
+        require(policyExists == true, "flightPolicyExists Modifier: is returning false");
+        _;
+    }
+
+    modifier noFlightPolicy(address passenger, string memory flightNumber, uint256 flightTime){
+        bytes32 fKey = fsData.getFlightKey(passenger,flightNumber,flightTime);
+        ( , , ,bool policyExists) = fsData.hasFlightPolicy(passenger, fKey);
+        require(policyExists == false, "noFlightPolicy Modifier: is returning true");
+        _;
+    }
+
+
     /********************************************************************************************/
     /*                                       CONSTRUCTOR                                        */
     /********************************************************************************************/
 
     /**
     * @dev Contract constructor
-    * TODO: Need to modify this so that the first airline is registered on the contact being
     * initialized.
     */
     constructor (address dataContract) public
@@ -146,50 +160,78 @@ contract FlightSuretyApp {
    }
 
    // application counterpart to data contract where data on policies is stored.
-   function insureFlight (address account, string calldata flightNumber, uint flightTimestamp)
+   function insureFlight (address passenger, string calldata flightNumber, uint flightTime)
    requireMaxEther()
+   noFlightPolicy(passenger,flightNumber,flightTime)
    external
    payable
    returns (string memory)
    {
        string memory statusMsg = "";
-       bytes32 fKey = fsData.getFlightKey(account,flightNumber,flightTimestamp);
-       bool hasPolicy = fsData.hasFlightPolicy(account, fKey);
-       require(hasPolicy == false, "Flight has already been insured for this account.");
-       fsData.buy(account, flightNumber, msg.value, fKey);
-       emit InsureFlightDetails(account, flightNumber, flightTimestamp, fKey, hasPolicy);
+       bytes32 fKey = fsData.getFlightKey(passenger,flightNumber,flightTime);
+       fsData.buy(passenger, flightNumber, msg.value, fKey);
        statusMsg = "hasPolicy passed, buy passed, event emitted, insurance purchased";
        return statusMsg;
-
    }
 
-   function creditPassenger (address airline, address account, string calldata flightNbr, uint256 flightTime) external  returns(string memory){
-       bytes32 flightKey = fsData.getFlightKey(account, flightNbr, flightTime);
-       emit InsuranceInfo(account, flightNbr, flightTime, flightKey);
-       require(fsData.hasFlightPolicy(account, flightKey) == true,"This flight is not insured for this account");
+   function debugHasFlightPolicy(address passenger, string calldata flightNumber, uint256 flightTime)
+   external
+   returns(string memory, address ,bytes32 ,bool)
+   {
+       bytes32 flightKey = fsData.getFlightKey(passenger, flightNumber, flightTime);
+       (string memory hasPolicyMsg ,address passenger ,bytes32 fKey ,bool hasPolicy) = fsData.hasFlightPolicy(passenger, flightKey);
+       return (hasPolicyMsg,passenger,fKey,hasPolicy);
+   }
+
+   function debugFlightKey(address passenger, string calldata flightNumber, uint256 flightTime)
+   external
+   returns(bytes32)
+   {
+       bytes32 flightKey = fsData.getFlightKey(passenger, flightNumber, flightTime);
+       return (flightKey);
+   }
+
+   function debugPolicy(address passenger)
+   external
+   returns(bool)
+   {
+       return (fsData.hasPolicy(passenger));
+   }
+
+
+
+   function creditPassenger (address airline, address passenger, string calldata flightNbr, uint256 flightTime)
+   external
+   flightPolicyExists(passenger, flightNbr, flightTime)
+   returns (string memory)
+   // returns(string memory, address ,bytes32 ,bool)
+   {
+       bytes32 flightKey = fsData.getFlightKey(passenger, flightNbr, flightTime);
        string memory statusMsg = "";
+
+
        // TODO: Check to see if flight status has already been recorded and proceed accordingly
        if(fsData.isFlightLogged(flightKey)){
            if(fsData.getFlightLog(flightKey) == STATUS_CODE_LATE_AIRLINE) {// The airline is late --> time to pay up!
                // Determine the amount of insurance that was placed on this flight by this passenger
-                ( , ,uint iAmount, , ) = fsData.getPolicy(account, flightKey);
+                ( , ,uint iAmount, , ) = fsData.getPolicy(passenger, flightKey);
 
                 // Use safemath to determin the payout based on the constant payout amount
                 uint payout = iAmount.div(4).mul(6); //TODO: make this so it isn't hard coded into the contract and instead use a constant
 
                 // Call creditInsuree() passing along the account, flightkey, and the payout amount calculated here.
-                fsData.creditInsuree(account, payout, flightKey);
+                fsData.creditInsuree(passenger, payout, flightKey);
                 statusMsg = "Account has been credited";
-                return statusMsg;
+                return  (statusMsg);
            } else {
                statusMsg = "Flight delay reason is not elligeable for payout.";
-               return statusMsg;
+               return  (statusMsg);
            }
 
        } else { // --> Request oracle input for flight
                fetchFlightStatus(airline,flightNbr,flightTime);
-               statusMsg = "Flight status has been requested, please try again later";
-               return statusMsg;
+               // statusMsg = "Flight status has been requested, please try again later";
+               return  (statusMsg);
            }
    }
 
@@ -463,7 +505,7 @@ contract FsData {
     function approveAirline(address account) external {} // interface
     function getVoteCount(address account) external returns(uint) {} //interface
     function getFlightKey(address airline, string calldata flight, uint256 timestamp) external returns(bytes32) {} // interface
-    function hasFlightPolicy(address account, bytes32 flightKey) external returns(bool) {} // interface
+    function hasFlightPolicy(address account, bytes32 flightKey) external returns(string memory, address, bytes32, bool) {} // interface
     function buy (address account, string calldata flightNumber, uint premiumPaid, bytes32 flightKey) external {} //interface
     function creditInsuree(address account, uint payout, bytes32 flightKey) external {} //interface
     function getPolicy(address account, bytes32 flightKey) external returns(address, string memory, uint, bool,bytes32) {} // interface
@@ -472,6 +514,6 @@ contract FsData {
     function logFlightStatus(bytes32 fKey, uint8 sCode) external view {} //interface
     function isFlightLogged(bytes32 fKey) external view returns(bool) {} // interface
     function getFlightLog(bytes32 fKey)  external view returns(uint8) {} //interface
-
+    function hasPolicy(address account) external view returns (bool) {} // interface
 }
 

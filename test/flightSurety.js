@@ -219,7 +219,7 @@ contract('Flight Surety Tests', async (accounts) => {
     let policy = await config.flightSuretyData.getPolicy.call(consumer, flightKey);
 
     // ASSERT
-    assert.equal(isInsured, true, "Policy should have been created for account");
+    assert.equal(isInsured[3], true, "Policy should have been created for account");
     assert.equal(consumer,policy[0], "Policy Holder Account is incorrect.")
     assert.equal(flightNumber, policy[1], "Flight number retrieved is incorrect.")
     assert.equal(premiumAmount,policy[2], "Premium Retrieved is incorrect")
@@ -252,7 +252,7 @@ contract('Flight Surety Tests', async (accounts) => {
     let policy = await config.flightSuretyData.getPolicy.call(consumer, flightKey);
 
     // ASSERT
-    assert.equal(isInsured, true, "Policy should have been created for account");
+    assert.equal(isInsured[3], true, "Policy should have been created for account");
     assert.equal(consumer,policy[0], "Policy Holder Account is incorrect.")
     assert.equal(flightNumber, policy[1], "Flight number retrieved is incorrect.")
     assert.notEqual(premiumAmount,policy[2], "Premium Retrieved is incorrect")
@@ -285,7 +285,7 @@ contract('Flight Surety Tests', async (accounts) => {
     let isInsured = await config.flightSuretyData.hasFlightPolicy.call(consumer, flightKey);
 
     // ASSERT
-    assert.equal(isInsured, false, "Policy should not have been created for account");
+    assert.equal(isInsured[3], false, "Policy should not have been created for account");
 
 
 

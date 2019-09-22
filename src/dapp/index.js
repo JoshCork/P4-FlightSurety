@@ -7,7 +7,7 @@ import Web3 from 'web3';
 (async() => {
 
 
-    let web3 = new Web3(new Web3.providers.WebsocketProvider('ws://localhost:7545'));
+    let web3 = new Web3(new Web3.providers.WebsocketProvider('ws://localhost:8545'));
     let result = null;
     let accounts = await web3.eth.getAccounts();
 
@@ -36,39 +36,76 @@ import Web3 from 'web3';
         // })
 
 
-         // User-submitted transaction
+        // #####################THISISTHEREALONE
+        // User-submitted transaction
          DOM.elid('insure-flight').addEventListener('click', () => {
             console.log("I've clicked the insure-flight button yo!")
             let flight = DOM.elid('flight-number').value;
             let flightTime = DOM.elid('flight-time').value;
             let eAmount = DOM.elid('ether-amount').value;
-            let passenger = accounts[11];
             console.log(`flightTime: ${flightTime}`)
             // Write transaction
-            contract.insureFlight(eAmount, passenger, flight, flightTime, (error, result) => {
+            contract.insureFlight(eAmount, flight, flightTime, (error, result) => {
                 console.log(error,result);
                 display('Flight Insurance', 'This flight should have been insured', [ { label: 'Flight Insurance', error: error, value: result} ]);
             });
+            contract.debugPolicy((error, result) => {
+                console.log(`error: ${error}`);
+                console.log(`Policy Item Exists?: ${result}`);
+                display('Has Policy DEBUG', 'A policy should exist', [ { label: 'Policy item in the array exists:', error: error, value: result} ]);
+            });
         })
+
+        // ############### DEBUG ###########################
+        // User-submitted transaction
+        // DOM.elid('insure-flight').addEventListener('click', () => {
+        //     console.log("I've clicked the insure-flight button yo!")
+        //     let flight = DOM.elid('flight-number').value;
+        //     let flightTime = DOM.elid('flight-time').value;
+        //     let eAmount = DOM.elid('ether-amount').value;
+        //     console.log(`flightTime: ${flightTime}`)
+        //     // Write transaction
+        //     contract.debugFlightKey(flight, flightTime, (error, result) => {
+        //         console.log(error,result);
+        //         display('Flight Key', 'THis is the flightkey sent', [ { label: 'Flight Key', error: error, value: result} ]);
+        //     });
+        // })
 
         // User-submitted transaction
         DOM.elid('payout-flight').addEventListener('click', () => {
             console.log("I've clicked the payout-flight button yo!")
             let flight = DOM.elid('flight-number-payout').value;
             let flightTime = DOM.elid('flight-time-payout').value;
-            let airline = accounts[2];
-            let passenger = accounts[11];
-
             console.log(`flightTime: ${flightTime}`)
-            console.log(`airline: ${airline}`)
             console.log(`html flight: ${flight}`)
-            console.log(`html passenter: ${passenger}`)
+
             // Write transaction
-            contract.creditPassenger(airline, passenger, flight, flightTime, (error, result) => {
-                console.log(error,result);
+            contract.creditPassenger(flight, flightTime, (error, result) => {
+                console.log(`error: ${error}`);
+                console.log(`result: ${result}`);
                 display('Reimbursement Status', 'We have made the request', [ { label: 'Flight Insurance', error: error, value: result} ]);
             });
         })
+
+        // ############### DEBUG ###########################
+        // User-submitted transaction
+        // DOM.elid('payout-flight').addEventListener('click', () => {
+        //     console.log("I've clicked the payout-flight button yo!")
+        //     let flight = DOM.elid('flight-number-payout').value;
+        //     let flightTime = DOM.elid('flight-time-payout').value;
+        //     console.log(`flightTime: ${flightTime}`)
+        //     console.log(`html flight: ${flight}`)
+
+        //     // Write transaction
+        //     contract.debugHasFlightPolicy(flight, flightTime, (error, result) => {
+        //         console.log(`error: ${error}`);
+        //         console.log(`policy message: ${result[0]}`);
+        //         console.log(`passenger: ${result[1]}`);
+        //         console.log(`fKey: ${result[2]}`);
+        //         console.log(`hasPolicy: ${result[3]}`);
+        //         display('DEBUG STATEMENT', 'We have made the request', [ { label: 'Flight Insurance', error: error, value: result} ]);
+        //     });
+        // })
 
     });
 

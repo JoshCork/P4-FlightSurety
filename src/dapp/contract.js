@@ -41,36 +41,64 @@ export default class Contract {
             .call({ from: self.owner}, callback);
     }
 
-    insureFlight(ether,passenger,flight,fTime, callback){
+    insureFlight(eAmount,flight,fTime, callback){
         let self = this;
-        let premium = this.web3.utils.toWei(ether.toString(), 'ether')
+        let premium = this.web3.utils.toWei(eAmount.toString(), 'ether')
 
         console.log(`timestamp: ${fTime}`)
-        console.log(`passenger: ${passenger}`)
+        console.log(`this.passengers[0]: ${this.passengers[0]}`)
         console.log(`flightNumber: ${flight}`)
-        console.log(`ether: ${ether}`)
+        console.log(`premium: ${premium}`)
+        console.log(`emount: ${eAmount}`)
+
 
         self.flightSuretyApp.methods
-            .insureFlight(passenger, flight, fTime)
-            .call({from:passenger, value: premium}, callback);
+            .insureFlight(this.passengers[0], flight, fTime)
+            .call({from:this.owner, value: premium}, callback);
     }
 
-    creditPassenger(airline, account, flightNbr, flightTime, callback){
+    creditPassenger(flightNbr, flightTime, callback){
         let self = this;
-        let data = {
-            airline: airline,
-            passenger: account,
-            flightNumber: flightNbr,
-            timeStamp: flightTime,
-        }
 
-        console.log(`timestamp: ${data.timeStamp}`)
-        console.log(`passenger: ${data.passenger}`)
-        console.log(`flightNumber: ${data.flightNumber}`)
+        console.log(`timestamp: ${flightTime}`)
+        console.log(`this.passengers[0]: ${this.passengers[0]}`)
+        console.log(`flightNumber: ${flightNbr}`)
 
         self.flightSuretyApp.methods
-            .creditPassenger(data.airline, data.passenger, data.flightNumber, data.timeStamp)
-            .call({from:data.passenger}, callback);
+            .creditPassenger(this.airlines[0], this.passengers[0], flightNbr, flightTime)
+            .call({from:this.owner}, callback);
+    }
+
+    debugHasFlightPolicy(flightNbr, flightTime, callback){
+        let self = this;
+        console.log(`timestamp: ${flightTime}`)
+        console.log(`this.passengers[0]: ${this.passengers[0]}`)
+        console.log(`flightNumber: ${flightNbr}`)
+
+        self.flightSuretyApp.methods
+            .debugHasFlightPolicy(this.passengers[0], flightNbr, flightTime)
+            .call({from:this.owner}, callback);
+
+    }
+
+    debugPolicy(callback){
+        let self = this;
+        self.flightSuretyApp.methods
+            .debugPolicy(this.passengers[0])
+            .call({from:this.owner}, callback);
+    }
+
+
+    debugFlightKey(flightNbr, flightTime, callback){
+        let self = this;
+        console.log(`timestamp: ${flightTime}`)
+        console.log(`this.passengers[0]: ${this.passengers[0]}`)
+        console.log(`flightNumber: ${flightNbr}`)
+
+        self.flightSuretyApp.methods
+            .debugFlightKey(this.passengers[0], flightNbr, flightTime)
+            .call({from:this.owner}, callback);
+
     }
 
     fetchFlightStatus(flight, callback) {
