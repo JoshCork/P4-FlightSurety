@@ -310,7 +310,7 @@ contract FlightSuretyApp {
                             string memory flight,
                             uint256 timestamp
                         )
-                        internal
+                        public
     {
         uint8 index = getRandomIndex(msg.sender);
 
